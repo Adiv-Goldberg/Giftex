@@ -23,101 +23,107 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        body { background-color: var(--bg-pure); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+        body { background-color: var(--bg-pure); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         a { text-decoration: none; color: inherit; }
 
-        /* Navigation */
-        nav { padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); }
+        nav { padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; }
         .brand-link { display: flex; align-items: center; gap: 0.75rem; }
         .logo-img { height: 28px; width: auto; object-fit: contain; }
         .brand-name { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
         .nav-actions { display: flex; align-items: center; gap: 1.5rem; }
         .user-email { font-size: 0.875rem; color: var(--text-muted); }
-        .logout-btn { font-size: 0.875rem; color: var(--text-main); background: none; border: none; cursor: pointer; transition: opacity 0.2s; }
-        .logout-btn:hover { opacity: 0.7; }
-        .admin-link { font-size: 0.8rem; font-weight: 500; color: var(--accent); border: 1px solid var(--border-subtle); padding: 0.35rem 0.85rem; border-radius: 999px; transition: all 0.2s; }
-        .admin-link:hover { border-color: var(--border-focus); background: rgba(255,255,255,0.05); }
+        .logout-btn, .back-btn { font-size: 0.875rem; color: var(--text-muted); background: none; border: none; cursor: pointer; transition: color 0.2s; }
+        .logout-btn:hover, .back-btn:hover { color: var(--text-main); }
+        .admin-link { font-size: 0.8rem; font-weight: 500; color: var(--bg-pure); background-color: var(--accent); padding: 0.35rem 0.85rem; border-radius: 999px; transition: opacity 0.2s; }
+        .admin-link:hover { opacity: 0.9; }
 
-        /* Main Content */
         main { flex: 1; padding: 4rem 2rem; max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 4rem; }
         
-        .header-section h1 { font-size: 2rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
-        .header-section p { color: var(--text-muted); font-size: 0.95rem; }
+        .header-section { margin-bottom: -1rem; }
+        .header-section h1 { font-size: 2.5rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+        .header-section p { color: var(--text-muted); font-size: 1rem; }
 
         .auth-warning { text-align: center; padding: 4rem 0; }
         .auth-warning h2 { font-weight: 500; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
         .auth-warning a { background-color: var(--accent); color: var(--bg-pure); padding: 0.75rem 1.5rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; display: inline-block; }
 
-        .section-header { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 2rem; }
+        .section-header { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 2rem; color: var(--text-muted); }
 
-        /* Forms & Inputs */
         .creation-form { display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 200px; position: relative; }
         .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
         .form-group input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border-subtle); color: var(--text-main); font-size: 1rem; padding: 0.5rem 0; transition: border-color 0.2s; outline: none; }
         .form-group input:focus { border-bottom-color: var(--border-focus); }
+        .form-group input::placeholder { color: rgba(255,255,255,0.2); }
         
         .btn-submit { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 0 1.5rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s, transform 0.1s; height: 40px; display: flex; align-items: center; justify-content: center; min-width: 100px; }
         .btn-submit:hover { opacity: 0.9; }
         .btn-submit:active { transform: scale(0.98); }
         .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        /* Participants List */
-        .participants-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 2rem; }
-        .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; border-bottom: 1px solid var(--hover-bg); }
-        .part-info h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.25rem; }
+        .participants-list { display: flex; flex-direction: column; gap: 0; margin-bottom: 2rem; }
+        .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; border-bottom: 1px solid var(--border-subtle); transition: background-color 0.2s; margin: 0 -1rem; padding-left: 1rem; padding-right: 1rem; border-radius: 8px; border-bottom: none; }
+        .participant-item:hover { background-color: var(--hover-bg); }
+        .part-info h3 { font-size: 1.125rem; font-weight: 400; margin-bottom: 0.25rem; }
         .part-info p { font-size: 0.875rem; color: var(--text-muted); }
         .part-actions { display: flex; gap: 1rem; align-items: center; }
         
-        .btn-text-action { background: none; border: none; color: var(--text-muted); font-size: 0.875rem; cursor: pointer; transition: color 0.2s; }
+        .btn-text-action { background: none; border: none; color: var(--text-muted); font-size: 0.875rem; cursor: pointer; transition: color 0.2s; padding: 0.5rem; }
         .btn-text-action:hover { color: var(--text-main); }
         .has-restrictions { color: var(--accent); font-weight: 500; }
 
-        .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 2rem 0; display: none; }
+        .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 1rem 0; display: none; }
 
-        /* Dispatch Button */
-        .dispatch-zone { text-align: center; margin-top: 2rem; padding-top: 3rem; border-top: 1px solid var(--border-subtle); }
-        .btn-dispatch { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 1.25rem 3rem; border-radius: 9999px; font-size: 1.125rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.1s; width: 100%; max-width: 400px; }
+        .dispatch-zone { text-align: left; margin-top: 2rem; padding-top: 3rem; }
+        .btn-dispatch { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 1rem 2rem; border-radius: 9999px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s, transform 0.1s; display: inline-flex; align-items: center; gap: 0.5rem; }
         .btn-dispatch:hover { opacity: 0.9; }
         .btn-dispatch:active { transform: scale(0.98); }
         .btn-dispatch:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .dispatch-zone p { color: var(--text-muted); font-size: 0.875rem; margin-top: 1rem; }
+        .dispatch-zone p { color: var(--text-muted); font-size: 0.875rem; margin-top: 1rem; line-height: 1.5; max-width: 500px; }
 
-        /* Modal for Restrictions */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.2s; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-content { background: var(--bg-pure); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; }
-        .modal-header { margin-bottom: 1.5rem; }
-        .modal-header h3 { font-size: 1.25rem; font-weight: 500; margin-bottom: 0.25rem; }
-        .modal-header p { font-size: 0.875rem; color: var(--text-muted); }
+        .modal-content { background: #111; border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 450px; transform: translateY(20px); transition: transform 0.2s; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
         
-        .restriction-list { display: flex; flex-direction: column; gap: 0.75rem; max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem; }
-        .restriction-item { display: flex; align-items: center; gap: 0.75rem; font-size: 0.95rem; cursor: pointer; }
-        .restriction-item input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+        .modal-header { margin-bottom: 2rem; }
+        .modal-header h3 { font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .modal-header p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
+        
+        .restriction-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 300px; overflow-y: auto; margin-bottom: 2rem; padding-right: 1rem; }
+        .restriction-item { display: flex; align-items: center; gap: 1rem; font-size: 1rem; cursor: pointer; padding: 0.75rem; border-radius: 8px; transition: background-color 0.2s; }
+        .restriction-item:hover { background-color: var(--hover-bg); }
+        .restriction-item input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
         
         .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; }
-        .btn-cancel { background: transparent; color: var(--text-main); border: none; font-size: 0.875rem; cursor: pointer; }
+        .btn-cancel { background: transparent; color: var(--text-muted); border: none; font-size: 0.875rem; cursor: pointer; transition: color 0.2s; font-weight: 500; }
+        .btn-cancel:hover { color: var(--text-main); }
         
-        .error-message, .success-message { font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; text-align: center; }
+        .error-message, .success-message { font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; text-align: left; }
         .error-message { color: var(--text-error); }
         .success-message { color: #4ade80; }
 
-        /* Loaders */
         .btn-loader { display: none; width: 14px; height: 14px; border: 2px solid var(--bg-pure); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
         .page-loader { width: 24px; height: 24px; border: 2px solid var(--text-muted); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; margin: 2rem 0; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading .btn-text { display: none; }
         .loading .btn-loader { display: block; }
+        
+        /* Custom scrollbar for modal */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
 <body>
     <nav>
-        <a href="dashboard.html" class="brand-link">
+        <a href="index.html" class="brand-link">
             <img src="https://i.imgur.com/ZrmR6uR.png" alt="Giftex Logo" class="logo-img">
             <span class="brand-name">GiftEx</span>
         </a>
         <div class="nav-actions" id="navActions" style="display: none;">
-            <a href="dashboard.html" class="btn-text-action" style="margin-right: 1rem;">Dashboard</a>
+            <a href="dashboard.html" class="back-btn">Dashboard</a>
             <span class="user-email" id="userEmailDisplay"></span>
             <button id="logoutBtn" class="logout-btn">Log out</button>
         </div>
@@ -154,7 +160,7 @@
                         <span class="btn-text">Add</span>
                         <span class="btn-loader"></span>
                     </button>
-                    <div class="error-message" id="addErrorMsg" style="text-align: left;"></div>
+                    <div class="error-message" id="addErrorMsg"></div>
                 </form>
             </section>
 
@@ -166,23 +172,22 @@
             
             <section class="dispatch-zone">
                 <button type="button" class="btn-dispatch" id="dispatchBtn">
-                    <span class="btn-text">Run Exchange & Send Emails</span>
-                    <span class="btn-loader" style="width: 20px; height: 20px; border-width: 3px; margin: 0 auto;"></span>
+                    <span class="btn-text">Run Exchange & Dispatch</span>
+                    <span class="btn-loader" style="width: 18px; height: 18px; border-width: 2px;"></span>
                 </button>
-                <p>Matches are processed instantly and deleted immediately.<br>Emails will be sent from the platform automatically.</p>
+                <p>Matches are processed instantly and deleted immediately from memory. Emails will be dispatched securely from the cloud.</p>
                 <div class="error-message" id="dispatchErrorMsg"></div>
-                <div class="success-message" id="dispatchSuccessMsg">Success! All emails have been dispatched.</div>
+                <div class="success-message" id="dispatchSuccessMsg">Success! All emails have been securely dispatched.</div>
             </section>
             
         </div>
     </main>
 
-    <!-- Restrictions Modal -->
     <div class="modal-overlay" id="restrictionsModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Set Restrictions</h3>
-                <p>Select people that <span id="modalTargetName" style="color:var(--text-main); font-weight:500;"></span> cannot match with.</p>
+                <p>Select the people that <span id="modalTargetName" style="color:var(--text-main); font-weight:500;"></span> cannot be matched with.</p>
             </div>
             <div class="restriction-list" id="modalRestrictionsList">
                 <!-- Checkboxes injected here via JS -->
@@ -190,7 +195,7 @@
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">Cancel</button>
                 <button class="btn-submit" id="saveRestrictionsBtn">
-                    <span class="btn-text">Save</span>
+                    <span class="btn-text">Save Rules</span>
                     <span class="btn-loader"></span>
                 </button>
             </div>
@@ -198,9 +203,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // PASTE YOUR GOOGLE WEB APP URL HERE
-        // ==========================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKMwXIHcxGNxg_PUMOVZbx1aiBH3Qb-2O7XZLfTL6vsTsSl0TaShxtYGe2MUzkWWUODg/exec';
 
         // State Check
@@ -241,12 +243,11 @@
         const dispatchErrorMsg = document.getElementById('dispatchErrorMsg');
         const dispatchSuccessMsg = document.getElementById('dispatchSuccessMsg');
 
-        // Initialization
         if (!userId) {
             authWarning.style.display = 'block';
             pageLoader.style.display = 'none';
         } else if (!groupId) {
-            errorState.textContent = "No group ID provided in URL.";
+            errorState.textContent = "Error: No group ID provided in URL.";
             errorState.style.display = 'block';
             pageLoader.style.display = 'none';
         } else {
@@ -257,7 +258,7 @@
                 const adminLink = document.createElement('a');
                 adminLink.href = 'admin.html';
                 adminLink.className = 'admin-link';
-                adminLink.textContent = 'Admin Dashboard';
+                adminLink.textContent = 'Admin';
                 navActions.insertBefore(adminLink, navActions.firstChild);
             }
 
@@ -286,6 +287,8 @@
                 
                 // Set Header info
                 displayGroupName.textContent = result.group.name;
+                
+                // Fix timezone shift by splitting exact date string
                 const dateParts = result.group.date.split('T')[0].split('-');
                 const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                 displayGroupDate.textContent = 'Exchange Date: ' + localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -325,7 +328,7 @@
                     <div class="part-actions">
                         <button type="button" class="btn-text-action ${hasRestrictions ? 'has-restrictions' : ''}" 
                                 onclick="openModal('${part.id}')">
-                            ${hasRestrictions ? 'Restrictions (' + part.restrictions.length + ')' : 'Add Restriction'}
+                            ${hasRestrictions ? 'Restrictions (' + part.restrictions.length + ')' : 'Add Restrictions'}
                         </button>
                     </div>
                 `;
@@ -333,7 +336,6 @@
             });
         }
 
-        // Add Participant
         addPartForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('partName').value.trim();
@@ -356,6 +358,7 @@
                 currentParticipants.push(result.participant);
                 renderParticipants();
                 addPartForm.reset();
+                document.getElementById('partName').focus(); // Ready for next input
                 
             } catch (err) {
                 addErrorMsg.textContent = err.message || "Failed to add participant.";
@@ -366,7 +369,6 @@
             }
         });
 
-        // Restrictions Modal Logic
         function openModal(participantId) {
             editingParticipantId = participantId;
             const targetPart = currentParticipants.find(p => p.id === participantId);
@@ -374,27 +376,36 @@
             
             modalRestrictionsList.innerHTML = '';
             
-            currentParticipants.forEach(p => {
-                if (p.id === participantId) return; // Can't restrict self
-                
-                const isRestricted = targetPart.restrictions && targetPart.restrictions.includes(p.id);
-                
-                const label = document.createElement('label');
-                label.className = 'restriction-item';
-                label.innerHTML = `
-                    <input type="checkbox" value="${p.id}" ${isRestricted ? 'checked' : ''}>
-                    ${p.name} (${p.email})
-                `;
-                modalRestrictionsList.appendChild(label);
-            });
+            if (currentParticipants.length <= 1) {
+                modalRestrictionsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.95rem;">Add more participants first.</div>';
+            } else {
+                currentParticipants.forEach(p => {
+                    if (p.id === participantId) return; // Can't restrict self
+                    
+                    const isRestricted = targetPart.restrictions && targetPart.restrictions.includes(p.id);
+                    
+                    const label = document.createElement('label');
+                    label.className = 'restriction-item';
+                    label.innerHTML = `
+                        <input type="checkbox" value="${p.id}" ${isRestricted ? 'checked' : ''}>
+                        <span>${p.name} <span style="color:var(--text-muted); font-size:0.875rem; margin-left:0.5rem;">(${p.email})</span></span>
+                    `;
+                    modalRestrictionsList.appendChild(label);
+                });
+            }
             
             modal.classList.add('active');
         }
 
         function closeModal() {
             modal.classList.remove('active');
-            editingParticipantId = null;
+            setTimeout(() => { editingParticipantId = null; }, 200);
         }
+
+        // Close modal on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
 
         saveRestrictionsBtn.addEventListener('click', async () => {
             const checkboxes = modalRestrictionsList.querySelectorAll('input[type="checkbox"]:checked');
@@ -418,29 +429,28 @@
                 const result = await response.json();
                 if (result.error) throw new Error(result.error);
                 
-                // Update local state
+                // Update local state and re-render
                 const pIndex = currentParticipants.findIndex(p => p.id === editingParticipantId);
                 currentParticipants[pIndex].restrictions = newRestrictions;
                 renderParticipants();
                 closeModal();
                 
             } catch (err) {
-                alert("Failed to save restrictions: " + err.message);
+                alert("Failed to save rules: " + err.message);
             } finally {
                 saveRestrictionsBtn.classList.remove('loading');
                 saveRestrictionsBtn.disabled = false;
             }
         });
 
-        // Dispatch Logic
         dispatchBtn.addEventListener('click', async () => {
             if (currentParticipants.length < 3) {
-                dispatchErrorMsg.textContent = "You need at least 3 participants to run an exchange.";
+                dispatchErrorMsg.textContent = "You need at least 3 participants to run a Secret Santa exchange.";
                 dispatchErrorMsg.style.display = 'block';
                 return;
             }
             
-            if (!confirm("Are you sure? This will instantly run the draw and send emails to everyone. This cannot be undone.")) return;
+            if (!confirm("Are you ready? This will instantly run the secret draw and send emails to everyone. Matches will be immediately destroyed.")) return;
             
             dispatchBtn.classList.add('loading');
             dispatchBtn.disabled = true;
@@ -458,15 +468,11 @@
                 if (result.error) throw new Error(result.error);
                 
                 dispatchSuccessMsg.style.display = 'block';
-                // Optional: disable button so they don't spam emails
-                dispatchBtn.style.opacity = '0.5';
-                dispatchBtn.style.cursor = 'not-allowed';
                 
             } catch (err) {
                 dispatchErrorMsg.textContent = err.message || "Failed to dispatch emails.";
                 dispatchErrorMsg.style.display = 'block';
                 dispatchBtn.disabled = false;
-            } finally {
                 dispatchBtn.classList.remove('loading');
             }
         });
