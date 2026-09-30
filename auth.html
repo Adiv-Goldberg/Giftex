@@ -93,7 +93,6 @@
         .auth-container {
             width: 100%;
             max-width: 400px;
-            /* No background or box styling to maintain pure minimalist feel */
         }
 
         .auth-header {
@@ -298,37 +297,39 @@
             </form>
 
             <div class="toggle-mode">
-            <span id="toggleText">Don't have an account? <span id="toggleLink">Sign up</span></span>
+                <span id="toggleText">Don't have an account? <span id="toggleLink">Sign up</span></span>
+            </div>
         </div>
-    </div>
-</main>
+    </main>
 
-<script>
-    // Dynamically fetch the API URL from the Google Sheet configuration
-    const SHEET_ID = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
-    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=api`;
+    <script>
+        // Dynamically fetch the API URL from the Google Sheet configuration
+        const SHEET_ID = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=api`;
 
-    async function getScriptUrl() {
-        let url = sessionStorage.getItem('giftex_script_url');
-        if (url) return url;
-        
-        try {
-            const response = await fetch(SHEET_URL);
-            const text = await response.text();
-            // Extract the Apps Script URL from the CSV response
-            const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
-            if (match) {
-                sessionStorage.setItem('giftex_script_url', match[0]);
-                return match[0];
+        async function getScriptUrl() {
+            let url = sessionStorage.getItem('giftex_script_url');
+            if (url) return url;
+            
+            try {
+                const response = await fetch(SHEET_URL);
+                const text = await response.text();
+                // Extract the Apps Script URL from the CSV response
+                const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
+                if (match) {
+                    sessionStorage.setItem('giftex_script_url', match[0]);
+                    return match[0];
+                }
+                throw new Error("Service unavailable.");
+            } catch (err) {
+                const isAdmin = localStorage.getItem('giftex_role') === 'admin';
+                const adminMsg = isAdmin ? " (Admin Debug: Could not load API URL configuration from Google Sheet.)" : "";
+                throw new Error("A connection error occurred. Please refresh the page and try again." + adminMsg);
             }
-            throw new Error("URL not found in the api sheet.");
-        } catch (err) {
-            throw new Error("Could not load API URL configuration. Make sure the Google Sheet is set to 'Anyone with the link can view'.");
         }
-    }
 
-    // Auto-redirect if session exists (User is already logged in)
-    if (localStorage.getItem('giftex_userId')) {
+        // Auto-redirect if session exists (User is already logged in)
+        if (localStorage.getItem('giftex_userId')) {
             window.location.href = 'dashboard.html';
         }
 
@@ -340,7 +341,6 @@
         const pageTitle = document.getElementById('pageTitle');
         const pageSubtitle = document.getElementById('pageSubtitle');
         const toggleText = document.getElementById('toggleText');
-        const toggleLink = document.getElementById('toggleLink');
         const submitBtn = document.getElementById('submitBtn');
         const errorMsg = document.getElementById('errorMsg');
         
@@ -355,13 +355,11 @@
             passwordInput.setAttribute('type', type);
             
             if (type === 'text') {
-                // Eye open SVG
                 eyeIcon.innerHTML = `
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                 `;
             } else {
-                // Eye closed SVG
                 eyeIcon.innerHTML = `
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                     <line x1="1" y1="1" x2="23" y2="23"></line>
@@ -369,12 +367,12 @@
             }
         });
 
-        // Toggle between Login and Register modes (Fixed Bug)
+        // Toggle between Login and Register modes
         toggleText.addEventListener('click', (e) => {
             if (e.target.id !== 'toggleLink') return;
             
             isLoginMode = !isLoginMode;
-            errorMsg.textContent = ''; // Clear errors
+            errorMsg.textContent = ''; 
             
             if (isLoginMode) {
                 document.title = "Giftex | Log in";
@@ -396,7 +394,6 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
-            // Set loading state
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
             errorMsg.textContent = '';
@@ -410,8 +407,6 @@
             try {
                 const SCRIPT_URL = await getScriptUrl();
                 
-                // We use POST with text/plain (handled via no-cors if needed, but standard cors works best for App Script if text/plain is used and JSON.parse on backend)
-                // App script doPost needs redirect follow
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
@@ -424,19 +419,16 @@
                 }
 
                 if (result.success) {
-                    // Store user session in localStorage
                     localStorage.setItem('giftex_userId', result.userId);
                     localStorage.setItem('giftex_role', result.role);
                     localStorage.setItem('giftex_email', email);
                     
-                    // Redirect to the dashboard
                     window.location.href = 'dashboard.html';
                 }
 
             } catch (err) {
                 errorMsg.textContent = err.message || "A connection error occurred. Please try again.";
             } finally {
-                // Remove loading state
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
             }
