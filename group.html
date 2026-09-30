@@ -109,7 +109,6 @@
         .loading .btn-text { display: none; }
         .loading .btn-loader { display: block; }
         
-        /* Custom scrollbar for modal */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
@@ -203,40 +202,30 @@
     </div>
 
     <script>
-        const SHEET_ID = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
-        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1`;
-
         async function getScriptUrl() {
-            let url = sessionStorage.getItem('giftex_script_url');
-            if (url) return url;
-            
+            let cachedUrl = sessionStorage.getItem('giftex_script_url');
+            if (cachedUrl) return cachedUrl;
+
             try {
-                const response = await fetch(SHEET_URL);
-                const text = await response.text();
+                const sheetId = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1`;
+
+                const res = await fetch(url);
+                const text = await res.text();
+                const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+                const cell = json.table.rows[0]?.c[0];
                 
-                const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_-]+\/exec)/);
-                if (match) {
-                    sessionStorage.setItem('giftex_script_url', match[0]);
-                    return match[0];
-                }
+                const fetchedUrl = cell?.f ?? cell?.v ?? '';
                 
-                const fallbackUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=api&range=A1`;
-                const fallbackResp = await fetch(fallbackUrl);
-                const fallbackText = await fallbackResp.text();
-                const fallbackMatch = fallbackText.match(/(https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_-]+\/exec)/);
-                
-                if (fallbackMatch) {
-                    sessionStorage.setItem('giftex_script_url', fallbackMatch[0]);
-                    return fallbackMatch[0];
-                }
-                
-                throw new Error("Service unavailable.");
+                if (!fetchedUrl) throw new Error("Empty URL returned");
+
+                sessionStorage.setItem('giftex_script_url', fetchedUrl);
+                return fetchedUrl;
             } catch (err) {
                 throw new Error("A connection error occurred. Please refresh the page and try again.");
             }
         }
 
-        // State Check
         const userId = localStorage.getItem('giftex_userId');
         const userRole = localStorage.getItem('giftex_role');
         const userEmail = localStorage.getItem('giftex_email');
@@ -247,7 +236,6 @@
         let currentParticipants = [];
         let editingParticipantId = null;
 
-        // DOM Elements
         const authWarning = document.getElementById('authWarning');
         const dashboardContent = document.getElementById('dashboardContent');
         const navActions = document.getElementById('navActions');
@@ -318,7 +306,6 @@
 
                 if (result.error) throw new Error(result.error);
                 
-                // Set Header info
                 displayGroupName.textContent = result.group.name;
                 
                 const dateParts = result.group.date.split('T')[0].split('-');
@@ -392,7 +379,7 @@
                 currentParticipants.push(result.participant);
                 renderParticipants();
                 addPartForm.reset();
-                document.getElementById('partName').focus(); // Ready for next input
+                document.getElementById('partName').focus();
                 
             } catch (err) {
                 addErrorMsg.textContent = "Failed to add participant. Please try again.";
