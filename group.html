@@ -204,7 +204,7 @@
 
     <script>
         const SHEET_ID = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
-        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=api`;
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1`;
 
         async function getScriptUrl() {
             let url = sessionStorage.getItem('giftex_script_url');
@@ -213,16 +213,26 @@
             try {
                 const response = await fetch(SHEET_URL);
                 const text = await response.text();
-                const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
+                
+                const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_-]+\/exec)/);
                 if (match) {
                     sessionStorage.setItem('giftex_script_url', match[0]);
                     return match[0];
                 }
+                
+                const fallbackUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=api&range=A1`;
+                const fallbackResp = await fetch(fallbackUrl);
+                const fallbackText = await fallbackResp.text();
+                const fallbackMatch = fallbackText.match(/(https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_-]+\/exec)/);
+                
+                if (fallbackMatch) {
+                    sessionStorage.setItem('giftex_script_url', fallbackMatch[0]);
+                    return fallbackMatch[0];
+                }
+                
                 throw new Error("Service unavailable.");
             } catch (err) {
-                const isAdmin = localStorage.getItem('giftex_role') === 'admin';
-                const adminMsg = isAdmin ? " (Admin Debug: Could not load API URL configuration from Google Sheet.)" : "";
-                throw new Error("A connection error occurred. Please refresh the page and try again." + adminMsg);
+                throw new Error("A connection error occurred. Please refresh the page and try again.");
             }
         }
 
