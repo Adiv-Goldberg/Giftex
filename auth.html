@@ -304,10 +304,28 @@
 </main>
 
 <script>
-    // ==========================================
-    // PASTE YOUR GOOGLE WEB APP URL HERE
-    // ==========================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyl6fvqxpaHxbW_SngHZcqgcq3V_BMdWNWnWZHRN2rqwyG4oftcb8jFcsBMMlzUZ9IT0w/exec'; 
+    // Dynamically fetch the API URL from the Google Sheet configuration
+    const SHEET_ID = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=api`;
+
+    async function getScriptUrl() {
+        let url = sessionStorage.getItem('giftex_script_url');
+        if (url) return url;
+        
+        try {
+            const response = await fetch(SHEET_URL);
+            const text = await response.text();
+            // Extract the Apps Script URL from the CSV response
+            const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
+            if (match) {
+                sessionStorage.setItem('giftex_script_url', match[0]);
+                return match[0];
+            }
+            throw new Error("URL not found in the api sheet.");
+        } catch (err) {
+            throw new Error("Could not load API URL configuration. Make sure the Google Sheet is set to 'Anyone with the link can view'.");
+        }
+    }
 
     // Auto-redirect if session exists (User is already logged in)
     if (localStorage.getItem('giftex_userId')) {
@@ -374,11 +392,6 @@
         // Handle Form Submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            if (SCRIPT_URL === 'YOUR_GOOGLE_WEB_APP_URL_HERE') {
-                errorMsg.textContent = "Error: Developer must set the SCRIPT_URL in auth.html";
-                return;
-            }
 
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
@@ -395,6 +408,8 @@
             };
 
             try {
+                const SCRIPT_URL = await getScriptUrl();
+                
                 // We use POST with text/plain (handled via no-cors if needed, but standard cors works best for App Script if text/plain is used and JSON.parse on backend)
                 // App script doPost needs redirect follow
                 const response = await fetch(SCRIPT_URL, {
