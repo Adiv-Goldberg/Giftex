@@ -350,8 +350,10 @@
             }
         });
 
-        // Toggle between Login and Register modes
-        toggleLink.addEventListener('click', () => {
+        // Toggle between Login and Register modes (Fixed Bug)
+        toggleText.addEventListener('click', (e) => {
+            if (e.target.id !== 'toggleLink') return;
+            
             isLoginMode = !isLoginMode;
             errorMsg.textContent = ''; // Clear errors
             
@@ -366,9 +368,6 @@
                 pageSubtitle.textContent = 'Set up your master account to manage exchanges.';
                 toggleText.innerHTML = 'Already have an account? <span id="toggleLink">Log in</span>';
             }
-            
-            // Re-attach listener to new element
-            document.getElementById('toggleLink').addEventListener('click', arguments.callee);
         });
 
         // Handle Form Submission
