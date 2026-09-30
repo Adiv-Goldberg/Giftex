@@ -251,9 +251,10 @@
         .loading .btn-text {
             display: none;
         }
-    <div class="loading .loader">
-        display: block;
-    }
+        
+        .loading .loader {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -411,6 +412,7 @@
                     // Store user session in localStorage
                     localStorage.setItem('giftex_userId', result.userId);
                     localStorage.setItem('giftex_role', result.role);
+                    localStorage.setItem('giftex_email', email);
                     
                     // Redirect to the dashboard
                     window.location.href = 'dashboard.html';
