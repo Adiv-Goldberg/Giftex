@@ -203,7 +203,6 @@
     </div>
 
     <script>
-        // Dynamically fetch the API URL from the Google Sheet configuration
         const SHEET_ID = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=api`;
 
@@ -211,14 +210,20 @@
             let url = sessionStorage.getItem('giftex_script_url');
             if (url) return url;
             
-            const response = await fetch(SHEET_URL);
-            const text = await response.text();
-            const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
-            if (match) {
-                sessionStorage.setItem('giftex_script_url', match[0]);
-                return match[0];
+            try {
+                const response = await fetch(SHEET_URL);
+                const text = await response.text();
+                const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
+                if (match) {
+                    sessionStorage.setItem('giftex_script_url', match[0]);
+                    return match[0];
+                }
+                throw new Error("Service unavailable.");
+            } catch (err) {
+                const isAdmin = localStorage.getItem('giftex_role') === 'admin';
+                const adminMsg = isAdmin ? " (Admin Debug: Could not load API URL configuration from Google Sheet.)" : "";
+                throw new Error("A connection error occurred. Please refresh the page and try again." + adminMsg);
             }
-            throw new Error("Could not load API URL configuration. Make sure the Google Sheet is set to 'Anyone with the link can view'.");
         }
 
         // State Check
@@ -306,7 +311,6 @@
                 // Set Header info
                 displayGroupName.textContent = result.group.name;
                 
-                // Fix timezone shift by splitting exact date string
                 const dateParts = result.group.date.split('T')[0].split('-');
                 const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                 displayGroupDate.textContent = 'Exchange Date: ' + localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -317,7 +321,8 @@
                 dashboardContent.style.display = 'flex';
                 
             } catch (err) {
-                errorState.textContent = err.message;
+                errorState.textContent = "Unable to load group details. Please check your connection and try again.";
+                if (userRole === 'admin') errorState.textContent += " (Admin debug: " + err.message + ")";
                 errorState.style.display = 'block';
             } finally {
                 pageLoader.style.display = 'none';
@@ -380,7 +385,8 @@
                 document.getElementById('partName').focus(); // Ready for next input
                 
             } catch (err) {
-                addErrorMsg.textContent = err.message || "Failed to add participant.";
+                addErrorMsg.textContent = "Failed to add participant. Please try again.";
+                if (userRole === 'admin') addErrorMsg.textContent += " (Debug: " + err.message + ")";
                 addErrorMsg.style.display = 'block';
             } finally {
                 addBtn.classList.remove('loading');
@@ -399,7 +405,7 @@
                 modalRestrictionsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.95rem;">Add more participants first.</div>';
             } else {
                 currentParticipants.forEach(p => {
-                    if (p.id === participantId) return; // Can't restrict self
+                    if (p.id === participantId) return; 
                     
                     const isRestricted = targetPart.restrictions && targetPart.restrictions.includes(p.id);
                     
@@ -421,7 +427,6 @@
             setTimeout(() => { editingParticipantId = null; }, 200);
         }
 
-        // Close modal on outside click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
         });
@@ -449,14 +454,14 @@
                 const result = await response.json();
                 if (result.error) throw new Error(result.error);
                 
-                // Update local state and re-render
                 const pIndex = currentParticipants.findIndex(p => p.id === editingParticipantId);
                 currentParticipants[pIndex].restrictions = newRestrictions;
                 renderParticipants();
                 closeModal();
                 
             } catch (err) {
-                alert("Failed to save rules: " + err.message);
+                const errorMsg = "Failed to save rules. Please try again.";
+                alert(userRole === 'admin' ? errorMsg + " (Debug: " + err.message + ")" : errorMsg);
             } finally {
                 saveRestrictionsBtn.classList.remove('loading');
                 saveRestrictionsBtn.disabled = false;
@@ -491,7 +496,8 @@
                 dispatchSuccessMsg.style.display = 'block';
                 
             } catch (err) {
-                dispatchErrorMsg.textContent = err.message || "Failed to dispatch emails.";
+                dispatchErrorMsg.textContent = "Failed to dispatch emails. Please try again.";
+                if (userRole === 'admin') dispatchErrorMsg.textContent += " (Debug: " + err.message + ")";
                 dispatchErrorMsg.style.display = 'block';
                 dispatchBtn.disabled = false;
                 dispatchBtn.classList.remove('loading');
