@@ -322,9 +322,7 @@
                 }
                 throw new Error("Service unavailable.");
             } catch (err) {
-                const isAdmin = localStorage.getItem('giftex_role') === 'admin';
-                const adminMsg = isAdmin ? " (Admin Debug: Could not load API URL configuration from Google Sheet.)" : "";
-                throw new Error("A connection error occurred. Please refresh the page and try again." + adminMsg);
+                throw new Error("A connection error occurred. Please refresh the page and try again.");
             }
         }
 
