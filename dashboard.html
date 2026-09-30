@@ -94,7 +94,6 @@
             font-size: 1rem; padding: 0.5rem 0; transition: border-color 0.2s; outline: none;
         }
         
-        /* Dark mode calendar icon fix */
         .form-group input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(1); opacity: 0.5; cursor: pointer; transition: opacity 0.2s;
         }
@@ -201,7 +200,6 @@
     </main>
 
     <script>
-        // Dynamically fetch the API URL from the Google Sheet configuration
         const SHEET_ID = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=api`;
 
@@ -209,14 +207,20 @@
             let url = sessionStorage.getItem('giftex_script_url');
             if (url) return url;
             
-            const response = await fetch(SHEET_URL);
-            const text = await response.text();
-            const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
-            if (match) {
-                sessionStorage.setItem('giftex_script_url', match[0]);
-                return match[0];
+            try {
+                const response = await fetch(SHEET_URL);
+                const text = await response.text();
+                const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
+                if (match) {
+                    sessionStorage.setItem('giftex_script_url', match[0]);
+                    return match[0];
+                }
+                throw new Error("Service unavailable.");
+            } catch (err) {
+                const isAdmin = localStorage.getItem('giftex_role') === 'admin';
+                const adminMsg = isAdmin ? " (Admin Debug: Could not load API URL configuration from Google Sheet.)" : "";
+                throw new Error("A connection error occurred. Please refresh the page and try again." + adminMsg);
             }
-            throw new Error("Could not load API URL configuration. Make sure the Google Sheet is set to 'Anyone with the link can view'.");
         }
 
         // State Check
@@ -241,13 +245,10 @@
         const dateInput = document.getElementById('exchangeDate');
 
         if (!userId) {
-            // Show warning if not logged in
             authWarning.style.display = 'block';
         } else {
-            // Setup dashboard if logged in
             navActions.style.display = 'flex';
             
-            // Add Admin link if user is admin
             if (userRole === 'admin') {
                 const adminLink = document.createElement('a');
                 adminLink.href = 'admin.html';
@@ -259,11 +260,9 @@
             userEmailDisplay.textContent = userEmail;
             dashboardContent.style.display = 'flex';
             
-            // Restrict past dates
             const today = new Date().toISOString().split('T')[0];
             dateInput.setAttribute('min', today);
             
-            // Initial data fetch
             fetchGroups();
         }
 
@@ -271,7 +270,7 @@
             localStorage.removeItem('giftex_userId');
             localStorage.removeItem('giftex_role');
             localStorage.removeItem('giftex_email');
-            sessionStorage.removeItem('giftex_script_url'); // Clear cached url too
+            sessionStorage.removeItem('giftex_script_url');
             window.location.href = 'auth.html';
         });
 
@@ -286,13 +285,11 @@
                 
                 const rawText = await response.text();
                 
-                // Bulletproof JSON parsing
                 let result;
                 try {
                     result = JSON.parse(rawText);
                 } catch (parseErr) {
-                    console.error("Raw response from server:", rawText);
-                    throw new Error("Received an invalid response from the server. Check your Apps Script deployment permissions.");
+                    throw new Error("Received an invalid response from the server.");
                 }
 
                 if (result.error) throw new Error(result.error);
@@ -300,12 +297,12 @@
                 
             } catch (err) {
                 emptyState.style.display = 'flex';
-                // Mask the un-updated Apps Script error with a friendly UI
-                emptyText.textContent = err.message === 'Invalid action' 
-                    ? "You haven't created any exchanges yet." 
-                    : 'Data Error: ' + err.message;
+                // Safe error handling: generic for users, detailed for admins
+                emptyText.textContent = "We couldn't load your exchanges. Please try refreshing the page.";
+                if (userRole === 'admin') {
+                    emptyText.textContent += " (Admin debug: " + err.message + ")";
+                }
             } finally {
-                // This GUARANTEES the loading spinner hides, even if an error crashes the code above
                 pageLoader.style.display = 'none';
             }
         }
@@ -323,7 +320,6 @@
             groups.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             groups.forEach(group => {
-                // Fix timezone shifting on date rendering
                 const dateParts = group.date.split('T')[0].split('-');
                 const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                 const formattedDate = localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -373,11 +369,11 @@
 
                 if (result.error) throw new Error(result.error);
                 
-                // Redirect to the new group's page immediately
                 window.location.href = `group.html?id=${result.group.id}`;
                 
             } catch (err) {
-                errorMsg.textContent = err.message || "Failed to create group.";
+                errorMsg.textContent = "Failed to create exchange. Please try again.";
+                if (userRole === 'admin') errorMsg.textContent += " (Debug: " + err.message + ")";
                 errorMsg.style.display = 'block';
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
