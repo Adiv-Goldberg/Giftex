@@ -203,7 +203,23 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyl6fvqxpaHxbW_SngHZcqgcq3V_BMdWNWnWZHRN2rqwyG4oftcb8jFcsBMMlzUZ9IT0w/exec';
+        // Dynamically fetch the API URL from the Google Sheet configuration
+        const SHEET_ID = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=api`;
+
+        async function getScriptUrl() {
+            let url = sessionStorage.getItem('giftex_script_url');
+            if (url) return url;
+            
+            const response = await fetch(SHEET_URL);
+            const text = await response.text();
+            const match = text.match(/(https:\/\/script\.google\.com\/macros\/s\/[^\/"]+\/exec)/);
+            if (match) {
+                sessionStorage.setItem('giftex_script_url', match[0]);
+                return match[0];
+            }
+            throw new Error("Could not load API URL configuration. Make sure the Google Sheet is set to 'Anyone with the link can view'.");
+        }
 
         // State Check
         const userId = localStorage.getItem('giftex_userId');
@@ -267,11 +283,13 @@
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.clear();
+            sessionStorage.clear();
             window.location.href = 'auth.html';
         });
 
         async function fetchGroupDetails() {
             try {
+                const SCRIPT_URL = await getScriptUrl();
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -346,6 +364,7 @@
             addErrorMsg.style.display = 'none';
 
             try {
+                const SCRIPT_URL = await getScriptUrl();
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -415,6 +434,7 @@
             saveRestrictionsBtn.disabled = true;
             
             try {
+                const SCRIPT_URL = await getScriptUrl();
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -458,6 +478,7 @@
             dispatchSuccessMsg.style.display = 'none';
             
             try {
+                const SCRIPT_URL = await getScriptUrl();
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
