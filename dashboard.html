@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giftex | Dashboard</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="https://i.imgur.com/ZrmR6uR.png" type="image/png">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-pure: #000000;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --text-error: #ff5555;
+            --accent: #ffffff;
+            --border-subtle: rgba(255, 255, 255, 0.15);
+            --border-focus: rgba(255, 255, 255, 0.8);
+            --hover-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-pure);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        nav {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .brand-link { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-img { height: 28px; width: auto; object-fit: contain; }
+        .brand-name { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+
+        .nav-actions { display: flex; align-items: center; gap: 1.5rem; }
+        .user-email { font-size: 0.875rem; color: var(--text-muted); }
+        
+        .logout-btn {
+            font-size: 0.875rem; color: var(--text-main);
+            background: none; border: none; cursor: pointer; transition: opacity 0.2s;
+        }
+        .logout-btn:hover { opacity: 0.7; }
+
+        main {
+            flex: 1; padding: 4rem 2rem; max-width: 800px;
+            margin: 0 auto; width: 100%; display: flex;
+            flex-direction: column; gap: 4rem;
+        }
+
+        .auth-warning {
+            text-align: center; padding: 4rem 0;
+        }
+        .auth-warning h2 { font-weight: 500; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+        .auth-warning a {
+            background-color: var(--accent); color: var(--bg-pure);
+            padding: 0.75rem 1.5rem; border-radius: 9999px;
+            font-size: 0.875rem; font-weight: 500; display: inline-block;
+        }
+
+        .section-header {
+            font-size: 1.5rem; font-weight: 500;
+            letter-spacing: -0.02em; margin-bottom: 2rem;
+        }
+
+        .creation-form { display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 200px; position: relative; }
+        .form-group label {
+            display: block; font-size: 0.75rem; color: var(--text-muted);
+            margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .form-group input {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 1px solid var(--border-subtle); color: var(--text-main);
+            font-size: 1rem; padding: 0.5rem 0; transition: border-color 0.2s; outline: none;
+        }
+        
+        /* Dark mode calendar icon fix */
+        .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1); opacity: 0.5; cursor: pointer; transition: opacity 0.2s;
+        }
+        .form-group input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+        .form-group input:focus { border-bottom-color: var(--border-focus); }
+
+        .btn-submit {
+            background-color: var(--accent); color: var(--bg-pure);
+            border: none; padding: 0 1.5rem; border-radius: 9999px;
+            font-size: 0.875rem; font-weight: 500; cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s; height: 40px; 
+            display: flex; align-items: center; justify-content: center; min-width: 100px;
+        }
+        .btn-submit:hover { opacity: 0.9; }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .error-message { color: var(--text-error); font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; }
+
+        .groups-list { display: flex; flex-direction: column; gap: 0.25rem; }
+        .group-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.25rem 1rem; margin: 0 -1rem; border-radius: 8px;
+            transition: background-color 0.2s; cursor: pointer;
+        }
+        .group-item:hover { background-color: var(--hover-bg); }
+        .group-info h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.25rem; }
+        .group-info p { font-size: 0.875rem; color: var(--text-muted); }
+        .group-arrow { color: var(--text-muted); transition: transform 0.2s, color 0.2s; }
+        .group-item:hover .group-arrow { transform: translateX(4px); color: var(--text-main); }
+        
+        .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 2rem 0; display: none; }
+        
+        .btn-loader {
+            display: none; width: 14px; height: 14px;
+            border: 2px solid var(--bg-pure); border-bottom-color: transparent;
+            border-radius: 50%; animation: rotation 1s linear infinite;
+        }
+        .page-loader {
+            width: 24px; height: 24px; border: 2px solid var(--text-muted);
+            border-bottom-color: transparent; border-radius: 50%;
+            animation: rotation 1s linear infinite; margin: 2rem 0;
+        }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .loading .btn-text { display: none; }
+        .loading .btn-loader { display: block; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="brand-link">
+            <img src="https://i.imgur.com/ZrmR6uR.png" alt="Giftex Logo" class="logo-img">
+            <span class="brand-name">GiftEx</span>
+        </a>
+        <div class="nav-actions" id="navActions" style="display: none;">
+            <span class="user-email" id="userEmailDisplay"></span>
+            <button id="logoutBtn" class="logout-btn">Log out</button>
+        </div>
+    </nav>
+
+    <main>
+        <div id="authWarning" class="auth-warning" style="display: none;">
+            <h2>You are not logged in.</h2>
+            <a href="auth.html">Sign In</a>
+        </div>
+
+        <div id="dashboardContent" style="display: none; flex-direction: column; gap: 4rem;">
+            
+            <section>
+                <h2 class="section-header">New Exchange</h2>
+                <form id="createGroupForm" class="creation-form">
+                    <div class="form-group">
+                        <label for="groupName">Exchange Name</label>
+                        <input type="text" id="groupName" placeholder="e.g. Office Secret Santa" required>
+                    </div>
+                    <div class="form-group" style="flex: 0.5;">
+                        <label for="exchangeDate">Exchange Date</label>
+                        <input type="date" id="exchangeDate" required>
+                    </div>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <span class="btn-text">Create</span>
+                        <span class="btn-loader"></span>
+                    </button>
+                    <div class="error-message" id="errorMsg"></div>
+                </form>
+            </section>
+
+            <section>
+                <h2 class="section-header">Your Exchanges</h2>
+                <div id="pageLoader" class="page-loader"></div>
+                <div id="emptyState" class="empty-state">You haven't created any exchanges yet.</div>
+                <div id="groupsList" class="groups-list"></div>
+            </section>
+            
+        </div>
+    </main>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKMwXIHcxGNxg_PUMOVZbx1aiBH3Qb-2O7XZLfTL6vsTsSl0TaShxtYGe2MUzkWWUODg/exec';
+
+        // State Check
+        const userId = localStorage.getItem('giftex_userId');
+        const userEmail = localStorage.getItem('giftex_email') || 'Account';
+
+        // DOM Elements
+        const authWarning = document.getElementById('authWarning');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const navActions = document.getElementById('navActions');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        
+        const logoutBtn = document.getElementById('logoutBtn');
+        const createForm = document.getElementById('createGroupForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const groupsList = document.getElementById('groupsList');
+        const emptyState = document.getElementById('emptyState');
+        const pageLoader = document.getElementById('pageLoader');
+        const dateInput = document.getElementById('exchangeDate');
+
+        if (!userId) {
+            // Show warning if not logged in
+            authWarning.style.display = 'block';
+        } else {
+            // Setup dashboard if logged in
+            navActions.style.display = 'flex';
+            userEmailDisplay.textContent = userEmail;
+            dashboardContent.style.display = 'flex';
+            
+            // Restrict past dates
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+            
+            // Initial data fetch
+            fetchGroups();
+        }
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('giftex_userId');
+            localStorage.removeItem('giftex_role');
+            localStorage.removeItem('giftex_email');
+            window.location.href = 'auth.html';
+        });
+
+        async function fetchGroups() {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'getGroups', ownerId: userId })
+                });
+                
+                const rawText = await response.text();
+                
+                // Bulletproof JSON parsing
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (parseErr) {
+                    console.error("Raw response from server:", rawText);
+                    throw new Error("Received an invalid response from the server. Check your Apps Script deployment permissions.");
+                }
+
+                if (result.error) throw new Error(result.error);
+                renderGroups(result.groups || []);
+                
+            } catch (err) {
+                emptyState.style.display = 'block';
+                emptyState.textContent = 'Data Error: ' + err.message;
+            } finally {
+                // This GUARANTEES the loading spinner hides, even if an error crashes the code above
+                pageLoader.style.display = 'none';
+            }
+        }
+
+        function renderGroups(groups) {
+            groupsList.innerHTML = '';
+            
+            if (groups.length === 0) {
+                emptyState.style.display = 'block';
+                emptyState.textContent = "You haven't created any exchanges yet.";
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            groups.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            groups.forEach(group => {
+                // Fix timezone shifting on date rendering
+                const dateParts = group.date.split('T')[0].split('-');
+                const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                const formattedDate = localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+                const a = document.createElement('a');
+                a.className = 'group-item';
+                a.href = `group.html?id=${group.id}`;
+                a.innerHTML = `
+                    <div class="group-info">
+                        <h3>${group.name}</h3>
+                        <p>Exchange Date: ${formattedDate}</p>
+                    </div>
+                    <div class="group-arrow">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                `;
+                groupsList.appendChild(a);
+            });
+        }
+
+        createForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const groupName = document.getElementById('groupName').value.trim();
+            const exchangeDate = document.getElementById('exchangeDate').value;
+            
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            errorMsg.style.display = 'none';
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'createGroup', ownerId: userId, groupName, exchangeDate })
+                });
+                
+                const rawText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (parseErr) {
+                    throw new Error("Server returned an invalid response.");
+                }
+
+                if (result.error) throw new Error(result.error);
+                
+                // Redirect to the new group's page immediately
+                window.location.href = `group.html?id=${result.group.id}`;
+                
+            } catch (err) {
+                errorMsg.textContent = err.message || "Failed to create group.";
+                errorMsg.style.display = 'block';
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
