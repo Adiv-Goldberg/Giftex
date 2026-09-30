@@ -126,8 +126,11 @@
         .group-arrow { color: var(--text-muted); transition: transform 0.2s, color 0.2s; }
         .group-item:hover .group-arrow { transform: translateX(4px); color: var(--text-main); }
         
-        .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 2rem 0; display: none; }
+        .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 2rem 0; display: none; flex-direction: column; align-items: flex-start; gap: 1.5rem; }
         
+        .admin-link { font-size: 0.8rem; font-weight: 500; color: var(--accent); border: 1px solid var(--border-subtle); padding: 0.35rem 0.85rem; border-radius: 999px; transition: all 0.2s; }
+        .admin-link:hover { border-color: var(--border-focus); background: rgba(255,255,255,0.05); }
+
         .btn-loader {
             display: none; width: 14px; height: 14px;
             border: 2px solid var(--bg-pure); border-bottom-color: transparent;
@@ -187,7 +190,10 @@
             <section>
                 <h2 class="section-header">Your Exchanges</h2>
                 <div id="pageLoader" class="page-loader"></div>
-                <div id="emptyState" class="empty-state">You haven't created any exchanges yet.</div>
+                <div id="emptyState" class="empty-state">
+                    <p id="emptyText">You haven't created any exchanges yet.</p>
+                    <button type="button" class="btn-submit" onclick="document.getElementById('groupName').focus()">Create New Exchange</button>
+                </div>
                 <div id="groupsList" class="groups-list"></div>
             </section>
             
@@ -199,6 +205,7 @@
 
         // State Check
         const userId = localStorage.getItem('giftex_userId');
+        const userRole = localStorage.getItem('giftex_role');
         const userEmail = localStorage.getItem('giftex_email') || 'Account';
 
         // DOM Elements
@@ -213,6 +220,7 @@
         const errorMsg = document.getElementById('errorMsg');
         const groupsList = document.getElementById('groupsList');
         const emptyState = document.getElementById('emptyState');
+        const emptyText = document.getElementById('emptyText');
         const pageLoader = document.getElementById('pageLoader');
         const dateInput = document.getElementById('exchangeDate');
 
@@ -222,6 +230,16 @@
         } else {
             // Setup dashboard if logged in
             navActions.style.display = 'flex';
+            
+            // Add Admin link if user is admin
+            if (userRole === 'admin') {
+                const adminLink = document.createElement('a');
+                adminLink.href = 'admin.html';
+                adminLink.className = 'admin-link';
+                adminLink.textContent = 'Admin Dashboard';
+                navActions.insertBefore(adminLink, navActions.firstChild);
+            }
+
             userEmailDisplay.textContent = userEmail;
             dashboardContent.style.display = 'flex';
             
@@ -263,8 +281,11 @@
                 renderGroups(result.groups || []);
                 
             } catch (err) {
-                emptyState.style.display = 'block';
-                emptyState.textContent = 'Data Error: ' + err.message;
+                emptyState.style.display = 'flex';
+                // Mask the un-updated Apps Script error with a friendly UI
+                emptyText.textContent = err.message === 'Invalid action' 
+                    ? "You haven't created any exchanges yet." 
+                    : 'Data Error: ' + err.message;
             } finally {
                 // This GUARANTEES the loading spinner hides, even if an error crashes the code above
                 pageLoader.style.display = 'none';
@@ -275,8 +296,8 @@
             groupsList.innerHTML = '';
             
             if (groups.length === 0) {
-                emptyState.style.display = 'block';
-                emptyState.textContent = "You haven't created any exchanges yet.";
+                emptyState.style.display = 'flex';
+                emptyText.textContent = "You haven't created any exchanges yet.";
                 return;
             }
             
