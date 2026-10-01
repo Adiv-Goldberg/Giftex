@@ -99,7 +99,7 @@
         .btn-cancel { background: transparent; color: var(--text-muted); border: none; font-size: 0.875rem; cursor: pointer; transition: color 0.2s; font-weight: 500; }
         .btn-cancel:hover { color: var(--text-main); }
         
-        .error-message, .success-message { font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; text-align: left; }
+        .error-message, .success-message { font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; text-align: left; word-wrap: break-word; }
         .error-message { color: var(--text-error); }
         .success-message { color: #4ade80; }
 
@@ -198,6 +198,7 @@
                     <span class="btn-loader"></span>
                 </button>
             </div>
+            <div class="error-message" id="modalErrorMsg" style="margin-top:1rem;"></div>
         </div>
     </div>
 
@@ -211,18 +212,28 @@
                 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1`;
 
                 const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status} retrieving configuration.`);
+                
                 const text = await res.text();
-                const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-                const cell = json.table.rows[0]?.c[0];
+                const startIndex = text.indexOf('{');
+                const endIndex = text.lastIndexOf('}') + 1;
+                
+                if (startIndex === -1 || endIndex === 0) {
+                    throw new Error("Could not parse configuration format.");
+                }
+                
+                const json = JSON.parse(text.substring(startIndex, endIndex));
+                const cell = json.table?.rows?.[0]?.c?.[0];
                 
                 const fetchedUrl = cell?.f ?? cell?.v ?? '';
                 
-                if (!fetchedUrl) throw new Error("Empty URL returned");
+                if (!fetchedUrl) throw new Error("Configuration URL is empty.");
 
                 sessionStorage.setItem('giftex_script_url', fetchedUrl);
                 return fetchedUrl;
             } catch (err) {
-                throw new Error("A connection error occurred. Please refresh the page and try again.");
+                console.error("Config fetch error:", err);
+                throw new Error(`Config Error: ${err.message}`);
             }
         }
 
@@ -257,6 +268,7 @@
         const modal = document.getElementById('restrictionsModal');
         const modalRestrictionsList = document.getElementById('modalRestrictionsList');
         const saveRestrictionsBtn = document.getElementById('saveRestrictionsBtn');
+        const modalErrorMsg = document.getElementById('modalErrorMsg');
         
         const dispatchBtn = document.getElementById('dispatchBtn');
         const dispatchErrorMsg = document.getElementById('dispatchErrorMsg');
@@ -266,7 +278,7 @@
             authWarning.style.display = 'block';
             pageLoader.style.display = 'none';
         } else if (!groupId) {
-            errorState.textContent = "Error: No group ID provided in URL.";
+            errorState.innerHTML = "<strong>Error:</strong> No group ID provided in URL.";
             errorState.style.display = 'block';
             pageLoader.style.display = 'none';
         } else {
@@ -293,18 +305,35 @@
         async function fetchGroupDetails() {
             try {
                 const SCRIPT_URL = await getScriptUrl();
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'getGroupDetails', userId: userId, groupId: groupId })
-                });
                 
-                const rawText = await response.text();
-                let result;
-                try { result = JSON.parse(rawText); } 
-                catch (parseErr) { throw new Error("Server returned an invalid response."); }
+                let response;
+                try {
+                    response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: 'getGroupDetails', userId: userId, groupId: groupId })
+                    });
+                } catch(netErr) {
+                    throw new Error("Network/CORS error communicating with server.");
+                }
+                
+                let rawText;
+                try {
+                    rawText = await response.text();
+                } catch(readErr) {
+                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
+                }
 
-                if (result.error) throw new Error(result.error);
+                let result;
+                try { 
+                    result = JSON.parse(rawText); 
+                } catch (parseErr) { 
+                    console.error("Parse Error. Raw text received:", rawText);
+                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`); 
+                }
+
+                if (result.error) throw new Error(`API Error: ${result.error}`);
                 
                 displayGroupName.textContent = result.group.name;
                 
@@ -318,8 +347,8 @@
                 dashboardContent.style.display = 'flex';
                 
             } catch (err) {
-                errorState.textContent = "Unable to load group details. Please check your connection and try again.";
-                if (userRole === 'admin') errorState.textContent += " (Admin debug: " + err.message + ")";
+                console.error("Fetch Group Details Error:", err);
+                errorState.innerHTML = `<strong>Unable to load group details:</strong><br>${err.message}`;
                 errorState.style.display = 'block';
             } finally {
                 pageLoader.style.display = 'none';
@@ -367,14 +396,35 @@
 
             try {
                 const SCRIPT_URL = await getScriptUrl();
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'addParticipant', groupId: groupId, name: name, email: email })
-                });
                 
-                const result = await response.json();
-                if (result.error) throw new Error(result.error);
+                let response;
+                try {
+                    response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: 'addParticipant', groupId: groupId, name: name, email: email })
+                    });
+                } catch(netErr) {
+                    throw new Error("Network/CORS error communicating with server.");
+                }
+                
+                let rawText;
+                try {
+                    rawText = await response.text();
+                } catch(readErr) {
+                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch(parseErr) {
+                    console.error("Parse Error. Raw text received:", rawText);
+                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`);
+                }
+
+                if (result.error) throw new Error(`API Error: ${result.error}`);
                 
                 currentParticipants.push(result.participant);
                 renderParticipants();
@@ -382,8 +432,8 @@
                 document.getElementById('partName').focus();
                 
             } catch (err) {
-                addErrorMsg.textContent = "Failed to add participant. Please try again.";
-                if (userRole === 'admin') addErrorMsg.textContent += " (Debug: " + err.message + ")";
+                console.error("Add Participant Error:", err);
+                addErrorMsg.innerHTML = `<strong>Error:</strong> ${err.message}`;
                 addErrorMsg.style.display = 'block';
             } finally {
                 addBtn.classList.remove('loading');
@@ -397,6 +447,7 @@
             document.getElementById('modalTargetName').textContent = targetPart.name;
             
             modalRestrictionsList.innerHTML = '';
+            modalErrorMsg.style.display = 'none';
             
             if (currentParticipants.length <= 1) {
                 modalRestrictionsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.95rem;">Add more participants first.</div>';
@@ -434,22 +485,44 @@
             
             saveRestrictionsBtn.classList.add('loading');
             saveRestrictionsBtn.disabled = true;
+            modalErrorMsg.style.display = 'none';
             
             try {
                 const SCRIPT_URL = await getScriptUrl();
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ 
-                        action: 'updateRestrictions', 
-                        groupId: groupId, 
-                        participantId: editingParticipantId,
-                        restrictions: newRestrictions
-                    })
-                });
                 
-                const result = await response.json();
-                if (result.error) throw new Error(result.error);
+                let response;
+                try {
+                    response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ 
+                            action: 'updateRestrictions', 
+                            groupId: groupId, 
+                            participantId: editingParticipantId,
+                            restrictions: newRestrictions
+                        })
+                    });
+                } catch(netErr) {
+                    throw new Error("Network/CORS error communicating with server.");
+                }
+                
+                let rawText;
+                try {
+                    rawText = await response.text();
+                } catch(readErr) {
+                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch(parseErr) {
+                    console.error("Parse Error. Raw text received:", rawText);
+                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`);
+                }
+
+                if (result.error) throw new Error(`API Error: ${result.error}`);
                 
                 const pIndex = currentParticipants.findIndex(p => p.id === editingParticipantId);
                 currentParticipants[pIndex].restrictions = newRestrictions;
@@ -457,8 +530,9 @@
                 closeModal();
                 
             } catch (err) {
-                const errorMsg = "Failed to save rules. Please try again.";
-                alert(userRole === 'admin' ? errorMsg + " (Debug: " + err.message + ")" : errorMsg);
+                console.error("Save Restrictions Error:", err);
+                modalErrorMsg.innerHTML = `<strong>Error:</strong> ${err.message}`;
+                modalErrorMsg.style.display = 'block';
             } finally {
                 saveRestrictionsBtn.classList.remove('loading');
                 saveRestrictionsBtn.disabled = false;
@@ -481,20 +555,41 @@
             
             try {
                 const SCRIPT_URL = await getScriptUrl();
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'dispatch', groupId: groupId })
-                });
                 
-                const result = await response.json();
-                if (result.error) throw new Error(result.error);
+                let response;
+                try {
+                    response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: 'dispatch', groupId: groupId })
+                    });
+                } catch(netErr) {
+                    throw new Error("Network/CORS error communicating with server.");
+                }
+                
+                let rawText;
+                try {
+                    rawText = await response.text();
+                } catch(readErr) {
+                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch(parseErr) {
+                    console.error("Parse Error. Raw text received:", rawText);
+                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`);
+                }
+
+                if (result.error) throw new Error(`API Error: ${result.error}`);
                 
                 dispatchSuccessMsg.style.display = 'block';
                 
             } catch (err) {
-                dispatchErrorMsg.textContent = "Failed to dispatch emails. Please try again.";
-                if (userRole === 'admin') dispatchErrorMsg.textContent += " (Debug: " + err.message + ")";
+                console.error("Dispatch Error:", err);
+                dispatchErrorMsg.innerHTML = `<strong>Error:</strong> ${err.message}`;
                 dispatchErrorMsg.style.display = 'block';
                 dispatchBtn.disabled = false;
                 dispatchBtn.classList.remove('loading');
