@@ -228,6 +228,7 @@
             margin-top: 1rem;
             text-align: center;
             min-height: 20px;
+            word-wrap: break-word;
         }
 
         .loader {
@@ -309,18 +310,28 @@
                 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1`;
 
                 const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status} retrieving configuration.`);
+                
                 const text = await res.text();
-                const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-                const cell = json.table.rows[0]?.c[0];
+                const startIndex = text.indexOf('{');
+                const endIndex = text.lastIndexOf('}') + 1;
+                
+                if (startIndex === -1 || endIndex === 0) {
+                    throw new Error("Could not parse configuration format.");
+                }
+                
+                const json = JSON.parse(text.substring(startIndex, endIndex));
+                const cell = json.table?.rows?.[0]?.c?.[0];
                 
                 const fetchedUrl = cell?.f ?? cell?.v ?? '';
                 
-                if (!fetchedUrl) throw new Error("Empty URL returned");
+                if (!fetchedUrl) throw new Error("Configuration URL is empty.");
 
                 sessionStorage.setItem('giftex_script_url', fetchedUrl);
                 return fetchedUrl;
             } catch (err) {
-                throw new Error("A connection error occurred. Please refresh the page and try again.");
+                console.error("Config fetch error:", err);
+                throw new Error(`Config Error: ${err.message}`);
             }
         }
 
@@ -397,15 +408,36 @@
             try {
                 const SCRIPT_URL = await getScriptUrl();
                 
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                let response;
+                try {
+                    response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                } catch (netErr) {
+                    console.error("Network Error:", netErr);
+                    throw new Error("Network/CORS error. The Google Apps Script URL may be incorrect, unredeployed, or blocking requests.");
+                }
 
-                const result = await response.json();
+                let rawText;
+                try {
+                    rawText = await response.text();
+                } catch (readErr) {
+                    console.error("Response Read Error:", readErr);
+                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (parseErr) {
+                    console.error("Parse Error. Raw text received:", rawText);
+                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    throw new Error(`Server returned invalid format (HTTP ${response.status}). Raw snippet: "${snippet}..."`);
+                }
 
                 if (result.error) {
-                    throw new Error(result.error);
+                    throw new Error(`API Error: ${result.error}`);
                 }
 
                 if (result.success) {
@@ -414,10 +446,13 @@
                     localStorage.setItem('giftex_email', email);
                     
                     window.location.href = 'dashboard.html';
+                } else {
+                    throw new Error("Unknown error: Success flag not set by server.");
                 }
 
             } catch (err) {
-                errorMsg.textContent = err.message || "A connection error occurred. Please try again.";
+                console.error("Authentication Process Error:", err);
+                errorMsg.innerHTML = `<strong>Error:</strong> ${err.message}`;
             } finally {
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
