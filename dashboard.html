@@ -109,7 +109,10 @@
                         </div>
                         <div class="form-group">
                             <label for="groupBudget">Budget (Optional)</label>
-                            <input type="text" id="groupBudget" placeholder="$____">
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <span style="position: absolute; left: 0; color: var(--text-muted); font-size: 1rem; pointer-events: none;">$</span>
+                                <input type="text" id="groupBudget" placeholder="20.50" style="padding-left: 1.1rem;">
+                            </div>
                         </div>
                     </div>
                     <div class="form-row" style="margin-top: 0.5rem;">
@@ -301,7 +304,8 @@
             e.preventDefault();
             const groupName = document.getElementById('groupName').value.trim();
             const exchangeDate = isTbaCheckbox.checked ? 'TBA' : exchangeDateInput.value;
-            const budget = document.getElementById('groupBudget').value.trim();
+            let budget = document.getElementById('groupBudget').value.trim();
+            if (budget && !budget.startsWith('$')) budget = '$' + budget;
             const exchangeTime = isTbaCheckbox.checked ? '' : exchangeTimeInput.value;
             
             submitBtn.classList.add('loading');
