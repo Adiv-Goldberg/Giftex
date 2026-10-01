@@ -112,7 +112,7 @@
         .btn-submit:active { transform: scale(0.98); }
         .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         
-        .error-message { color: var(--text-error); font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; }
+        .error-message { color: var(--text-error); font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; word-wrap: break-word; }
 
         .groups-list { display: flex; flex-direction: column; gap: 0.25rem; }
         .group-item {
@@ -127,6 +127,7 @@
         .group-item:hover .group-arrow { transform: translateX(4px); color: var(--text-main); }
         
         .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 2rem 0; display: none; flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+        .empty-error-state { color: var(--text-error); font-size: 0.95rem; padding: 2rem 0; display: none; flex-direction: column; align-items: flex-start; gap: 1.5rem; word-wrap: break-word;}
         
         .admin-link { font-size: 0.8rem; font-weight: 500; color: var(--accent); border: 1px solid var(--border-subtle); padding: 0.35rem 0.85rem; border-radius: 999px; transition: all 0.2s; }
         .admin-link:hover { border-color: var(--border-focus); background: rgba(255,255,255,0.05); }
@@ -193,6 +194,9 @@
                     <p id="emptyText">You haven't created any exchanges yet.</p>
                     <button type="button" class="btn-submit" onclick="document.getElementById('groupName').focus()">Create New Exchange</button>
                 </div>
+                <div id="errorState" class="empty-error-state">
+                    <p id="errorText"></p>
+                </div>
                 <div id="groupsList" class="groups-list"></div>
             </section>
             
@@ -209,18 +213,28 @@
                 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1`;
 
                 const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status} retrieving configuration.`);
+                
                 const text = await res.text();
-                const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-                const cell = json.table.rows[0]?.c[0];
+                const startIndex = text.indexOf('{');
+                const endIndex = text.lastIndexOf('}') + 1;
+                
+                if (startIndex === -1 || endIndex === 0) {
+                    throw new Error("Could not parse configuration format.");
+                }
+                
+                const json = JSON.parse(text.substring(startIndex, endIndex));
+                const cell = json.table?.rows?.[0]?.c?.[0];
                 
                 const fetchedUrl = cell?.f ?? cell?.v ?? '';
                 
-                if (!fetchedUrl) throw new Error("Empty URL returned");
+                if (!fetchedUrl) throw new Error("Configuration URL is empty.");
 
                 sessionStorage.setItem('giftex_script_url', fetchedUrl);
                 return fetchedUrl;
             } catch (err) {
-                throw new Error("A connection error occurred. Please refresh the page and try again.");
+                console.error("Config fetch error:", err);
+                throw new Error(`Config Error: ${err.message}`);
             }
         }
 
@@ -238,8 +252,12 @@
         const submitBtn = document.getElementById('submitBtn');
         const errorMsg = document.getElementById('errorMsg');
         const groupsList = document.getElementById('groupsList');
+        
         const emptyState = document.getElementById('emptyState');
         const emptyText = document.getElementById('emptyText');
+        const errorState = document.getElementById('errorState');
+        const errorText = document.getElementById('errorText');
+        
         const pageLoader = document.getElementById('pageLoader');
         const dateInput = document.getElementById('exchangeDate');
 
@@ -276,30 +294,43 @@
         async function fetchGroups() {
             try {
                 const SCRIPT_URL = await getScriptUrl();
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'getGroups', ownerId: userId })
-                });
+                let response;
                 
-                const rawText = await response.text();
+                try {
+                    response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: 'getGroups', ownerId: userId })
+                    });
+                } catch (netErr) {
+                    console.error("Network error fetching groups:", netErr);
+                    throw new Error("Network/CORS error communicating with server.");
+                }
+                
+                let rawText;
+                try {
+                    rawText = await response.text();
+                } catch (readErr) {
+                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
+                }
                 
                 let result;
                 try {
                     result = JSON.parse(rawText);
                 } catch (parseErr) {
-                    throw new Error("Received an invalid response from the server.");
+                    console.error("Parse Error. Raw text received:", rawText);
+                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    throw new Error(`Server returned invalid format (HTTP ${response.status}). Raw: "${snippet}..."`);
                 }
 
-                if (result.error) throw new Error(result.error);
+                if (result.error) throw new Error(`API Error: ${result.error}`);
                 renderGroups(result.groups || []);
                 
             } catch (err) {
-                emptyState.style.display = 'flex';
-                emptyText.textContent = "We couldn't load your exchanges. Please try refreshing the page.";
-                if (userRole === 'admin') {
-                    emptyText.textContent += " (Admin debug: " + err.message + ")";
-                }
+                console.error("Fetch Groups Process Error:", err);
+                emptyState.style.display = 'none';
+                errorState.style.display = 'flex';
+                errorText.innerHTML = `<strong>Error loading exchanges:</strong><br>${err.message}`;
             } finally {
                 pageLoader.style.display = 'none';
             }
@@ -315,6 +346,7 @@
             }
             
             emptyState.style.display = 'none';
+            errorState.style.display = 'none';
             groups.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             groups.forEach(group => {
@@ -351,27 +383,41 @@
 
             try {
                 const SCRIPT_URL = await getScriptUrl();
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'createGroup', ownerId: userId, groupName, exchangeDate })
-                });
                 
-                const rawText = await response.text();
+                let response;
+                try {
+                    response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: 'createGroup', ownerId: userId, groupName, exchangeDate })
+                    });
+                } catch(netErr) {
+                    throw new Error("Network/CORS error communicating with server.");
+                }
+                
+                let rawText;
+                try {
+                    rawText = await response.text();
+                } catch(readErr) {
+                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
+                }
+
                 let result;
                 try {
                     result = JSON.parse(rawText);
                 } catch (parseErr) {
-                    throw new Error("Server returned an invalid response.");
+                    console.error("Parse Error. Raw text received:", rawText);
+                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`);
                 }
 
-                if (result.error) throw new Error(result.error);
+                if (result.error) throw new Error(`API Error: ${result.error}`);
                 
                 window.location.href = `group.html?id=${result.group.id}`;
                 
             } catch (err) {
-                errorMsg.textContent = "Failed to create exchange. Please try again.";
-                if (userRole === 'admin') errorMsg.textContent += " (Debug: " + err.message + ")";
+                console.error("Create Exchange Error:", err);
+                errorMsg.innerHTML = `<strong>Error:</strong> ${err.message}`;
                 errorMsg.style.display = 'block';
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
