@@ -4,21 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giftex | Manage Exchange</title>
-    
-    <!-- Favicon -->
     <link rel="icon" href="https://i.imgur.com/ZrmR6uR.png" type="image/png">
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
         :root {
-            --bg-pure: #000000;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --text-error: #ff5555;
-            --accent: #ffffff;
-            --border-subtle: rgba(255, 255, 255, 0.15);
-            --border-focus: rgba(255, 255, 255, 0.8);
+            --bg-pure: #000000; --text-main: #ffffff; --text-muted: #888888;
+            --text-error: #ff5555; --accent: #ffffff;
+            --border-subtle: rgba(255, 255, 255, 0.15); --border-focus: rgba(255, 255, 255, 0.8);
             --hover-bg: rgba(255, 255, 255, 0.05);
         }
 
@@ -75,7 +68,7 @@
         .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 1rem 0; display: none; }
 
         .dispatch-zone { text-align: left; margin-top: 2rem; padding-top: 3rem; }
-        .btn-dispatch { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 1rem 2rem; border-radius: 9999px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s, transform 0.1s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-dispatch { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 1rem 2rem; border-radius: 9999px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s, opacity 0.2s, transform 0.1s; display: inline-flex; align-items: center; gap: 0.5rem; }
         .btn-dispatch:hover { opacity: 0.9; }
         .btn-dispatch:active { transform: scale(0.98); }
         .btn-dispatch:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -171,7 +164,7 @@
             
             <section class="dispatch-zone">
                 <button type="button" class="btn-dispatch" id="dispatchBtn">
-                    <span class="btn-text">Run Exchange & Dispatch</span>
+                    <span class="btn-text" id="dispatchBtnText">Run Exchange & Dispatch</span>
                     <span class="btn-loader" style="width: 18px; height: 18px; border-width: 2px;"></span>
                 </button>
                 <p>Matches are processed instantly and deleted immediately from memory. Emails will be dispatched securely from the cloud.</p>
@@ -188,9 +181,7 @@
                 <h3>Set Restrictions</h3>
                 <p>Select the people that <span id="modalTargetName" style="color:var(--text-main); font-weight:500;"></span> cannot be matched with.</p>
             </div>
-            <div class="restriction-list" id="modalRestrictionsList">
-                <!-- Checkboxes injected here via JS -->
-            </div>
+            <div class="restriction-list" id="modalRestrictionsList"></div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">Cancel</button>
                 <button class="btn-submit" id="saveRestrictionsBtn">
@@ -198,49 +189,65 @@
                     <span class="btn-loader"></span>
                 </button>
             </div>
-            <div class="error-message" id="modalErrorMsg" style="margin-top:1rem;"></div>
         </div>
     </div>
 
     <script>
         async function getScriptUrl() {
-            let cachedUrl = sessionStorage.getItem('giftex_script_url');
-            if (cachedUrl) return cachedUrl;
-
+            sessionStorage.removeItem('giftex_script_url');
             try {
                 const sheetId = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
-                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1`;
-
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1&cb=${Date.now()}`;
                 const res = await fetch(url);
-                if (!res.ok) throw new Error(`HTTP ${res.status} retrieving configuration.`);
-                
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const text = await res.text();
                 const startIndex = text.indexOf('{');
                 const endIndex = text.lastIndexOf('}') + 1;
-                
-                if (startIndex === -1 || endIndex === 0) {
-                    throw new Error("Could not parse configuration format.");
-                }
-                
+                if (startIndex === -1 || endIndex === 0) throw new Error("Could not parse configuration.");
                 const json = JSON.parse(text.substring(startIndex, endIndex));
                 const cell = json.table?.rows?.[0]?.c?.[0];
-                
                 const fetchedUrl = cell?.f ?? cell?.v ?? '';
-                
                 if (!fetchedUrl) throw new Error("Configuration URL is empty.");
-
                 sessionStorage.setItem('giftex_script_url', fetchedUrl);
                 return fetchedUrl;
             } catch (err) {
-                console.error("Config fetch error:", err);
                 throw new Error(`Config Error: ${err.message}`);
             }
+        }
+
+        async function apiCall(payload) {
+            const SCRIPT_URL = await getScriptUrl();
+            let response;
+            try {
+                response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (netErr) {
+                throw new Error("Network/CORS error communicating with server.");
+            }
+            let rawText;
+            try {
+                rawText = await response.text();
+            } catch(readErr) {
+                throw new Error(`Failed to read response body.`);
+            }
+            let result;
+            try { 
+                result = JSON.parse(rawText); 
+            } catch (parseErr) { 
+                throw new Error(`Server returned invalid JSON format.`); 
+            }
+            if (result.error) {
+                throw new Error(`API Error: ${result.error}`);
+            }
+            return result;
         }
 
         const userId = localStorage.getItem('giftex_userId');
         const userRole = localStorage.getItem('giftex_role');
         const userEmail = localStorage.getItem('giftex_email');
-        
         const urlParams = new URLSearchParams(window.location.search);
         const groupId = urlParams.get('id');
         
@@ -256,7 +263,6 @@
         
         const displayGroupName = document.getElementById('displayGroupName');
         const displayGroupDate = document.getElementById('displayGroupDate');
-        
         const addPartForm = document.getElementById('addPartForm');
         const addBtn = document.getElementById('addBtn');
         const addErrorMsg = document.getElementById('addErrorMsg');
@@ -268,9 +274,9 @@
         const modal = document.getElementById('restrictionsModal');
         const modalRestrictionsList = document.getElementById('modalRestrictionsList');
         const saveRestrictionsBtn = document.getElementById('saveRestrictionsBtn');
-        const modalErrorMsg = document.getElementById('modalErrorMsg');
         
         const dispatchBtn = document.getElementById('dispatchBtn');
+        const dispatchBtnText = document.getElementById('dispatchBtnText');
         const dispatchErrorMsg = document.getElementById('dispatchErrorMsg');
         const dispatchSuccessMsg = document.getElementById('dispatchSuccessMsg');
 
@@ -278,13 +284,12 @@
             authWarning.style.display = 'block';
             pageLoader.style.display = 'none';
         } else if (!groupId) {
-            errorState.innerHTML = "<strong>Error:</strong> No group ID provided in URL.";
+            errorState.textContent = "Error: No group ID provided in URL.";
             errorState.style.display = 'block';
             pageLoader.style.display = 'none';
         } else {
             navActions.style.display = 'flex';
             if (userEmail) userEmailDisplay.textContent = userEmail;
-            
             if (userRole === 'admin') {
                 const adminLink = document.createElement('a');
                 adminLink.href = 'admin.html';
@@ -292,7 +297,6 @@
                 adminLink.textContent = 'Admin';
                 navActions.insertBefore(adminLink, navActions.firstChild);
             }
-
             fetchGroupDetails();
         }
 
@@ -304,51 +308,17 @@
 
         async function fetchGroupDetails() {
             try {
-                const SCRIPT_URL = await getScriptUrl();
-                
-                let response;
-                try {
-                    response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: 'getGroupDetails', userId: userId, groupId: groupId })
-                    });
-                } catch(netErr) {
-                    throw new Error("Network/CORS error communicating with server.");
-                }
-                
-                let rawText;
-                try {
-                    rawText = await response.text();
-                } catch(readErr) {
-                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
-                }
-
-                let result;
-                try { 
-                    result = JSON.parse(rawText); 
-                } catch (parseErr) { 
-                    console.error("Parse Error. Raw text received:", rawText);
-                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`); 
-                }
-
-                if (result.error) throw new Error(`API Error: ${result.error}`);
-                
+                const result = await apiCall({ action: 'getGroupDetails', userId: userId, groupId: groupId });
                 displayGroupName.textContent = result.group.name;
-                
                 const dateParts = result.group.date.split('T')[0].split('-');
                 const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                 displayGroupDate.textContent = 'Exchange Date: ' + localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
                 
                 currentParticipants = result.participants || [];
                 renderParticipants();
-                
                 dashboardContent.style.display = 'flex';
-                
             } catch (err) {
-                console.error("Fetch Group Details Error:", err);
-                errorState.innerHTML = `<strong>Unable to load group details:</strong><br>${err.message}`;
+                errorState.textContent = "Unable to load group details. " + err.message;
                 errorState.style.display = 'block';
             } finally {
                 pageLoader.style.display = 'none';
@@ -395,45 +365,13 @@
             addErrorMsg.style.display = 'none';
 
             try {
-                const SCRIPT_URL = await getScriptUrl();
-                
-                let response;
-                try {
-                    response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: 'addParticipant', groupId: groupId, name: name, email: email })
-                    });
-                } catch(netErr) {
-                    throw new Error("Network/CORS error communicating with server.");
-                }
-                
-                let rawText;
-                try {
-                    rawText = await response.text();
-                } catch(readErr) {
-                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
-                }
-
-                let result;
-                try {
-                    result = JSON.parse(rawText);
-                } catch(parseErr) {
-                    console.error("Parse Error. Raw text received:", rawText);
-                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`);
-                }
-
-                if (result.error) throw new Error(`API Error: ${result.error}`);
-                
+                const result = await apiCall({ action: 'addParticipant', groupId: groupId, name: name, email: email });
                 currentParticipants.push(result.participant);
                 renderParticipants();
                 addPartForm.reset();
                 document.getElementById('partName').focus();
-                
             } catch (err) {
-                console.error("Add Participant Error:", err);
-                addErrorMsg.innerHTML = `<strong>Error:</strong> ${err.message}`;
+                addErrorMsg.textContent = "Failed to add participant. " + err.message;
                 addErrorMsg.style.display = 'block';
             } finally {
                 addBtn.classList.remove('loading');
@@ -445,18 +383,14 @@
             editingParticipantId = participantId;
             const targetPart = currentParticipants.find(p => p.id === participantId);
             document.getElementById('modalTargetName').textContent = targetPart.name;
-            
             modalRestrictionsList.innerHTML = '';
-            modalErrorMsg.style.display = 'none';
             
             if (currentParticipants.length <= 1) {
                 modalRestrictionsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.95rem;">Add more participants first.</div>';
             } else {
                 currentParticipants.forEach(p => {
                     if (p.id === participantId) return; 
-                    
                     const isRestricted = targetPart.restrictions && targetPart.restrictions.includes(p.id);
-                    
                     const label = document.createElement('label');
                     label.className = 'restriction-item';
                     label.innerHTML = `
@@ -466,7 +400,6 @@
                     modalRestrictionsList.appendChild(label);
                 });
             }
-            
             modal.classList.add('active');
         }
 
@@ -485,60 +418,29 @@
             
             saveRestrictionsBtn.classList.add('loading');
             saveRestrictionsBtn.disabled = true;
-            modalErrorMsg.style.display = 'none';
             
             try {
-                const SCRIPT_URL = await getScriptUrl();
-                
-                let response;
-                try {
-                    response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ 
-                            action: 'updateRestrictions', 
-                            groupId: groupId, 
-                            participantId: editingParticipantId,
-                            restrictions: newRestrictions
-                        })
-                    });
-                } catch(netErr) {
-                    throw new Error("Network/CORS error communicating with server.");
-                }
-                
-                let rawText;
-                try {
-                    rawText = await response.text();
-                } catch(readErr) {
-                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
-                }
-
-                let result;
-                try {
-                    result = JSON.parse(rawText);
-                } catch(parseErr) {
-                    console.error("Parse Error. Raw text received:", rawText);
-                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`);
-                }
-
-                if (result.error) throw new Error(`API Error: ${result.error}`);
+                const result = await apiCall({ 
+                    action: 'updateRestrictions', 
+                    groupId: groupId, 
+                    participantId: editingParticipantId,
+                    restrictions: newRestrictions
+                });
                 
                 const pIndex = currentParticipants.findIndex(p => p.id === editingParticipantId);
                 currentParticipants[pIndex].restrictions = newRestrictions;
                 renderParticipants();
                 closeModal();
-                
             } catch (err) {
-                console.error("Save Restrictions Error:", err);
-                modalErrorMsg.innerHTML = `<strong>Error:</strong> ${err.message}`;
-                modalErrorMsg.style.display = 'block';
+                alert("Failed to save rules: " + err.message);
             } finally {
                 saveRestrictionsBtn.classList.remove('loading');
                 saveRestrictionsBtn.disabled = false;
             }
         });
 
+        let dispatchConfirmed = false;
+        
         dispatchBtn.addEventListener('click', async () => {
             if (currentParticipants.length < 3) {
                 dispatchErrorMsg.textContent = "You need at least 3 participants to run a Secret Santa exchange.";
@@ -546,7 +448,17 @@
                 return;
             }
             
-            if (!confirm("Are you ready? This will instantly run the secret draw and send emails to everyone. Matches will be immediately destroyed.")) return;
+            if (!dispatchConfirmed) {
+                dispatchConfirmed = true;
+                dispatchBtn.style.backgroundColor = "var(--text-error)";
+                dispatchBtnText.textContent = "Are you sure? Click again to execute.";
+                setTimeout(() => {
+                    dispatchConfirmed = false;
+                    dispatchBtn.style.backgroundColor = "var(--accent)";
+                    dispatchBtnText.textContent = "Run Exchange & Dispatch";
+                }, 5000);
+                return;
+            }
             
             dispatchBtn.classList.add('loading');
             dispatchBtn.disabled = true;
@@ -554,43 +466,17 @@
             dispatchSuccessMsg.style.display = 'none';
             
             try {
-                const SCRIPT_URL = await getScriptUrl();
-                
-                let response;
-                try {
-                    response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: 'dispatch', groupId: groupId })
-                    });
-                } catch(netErr) {
-                    throw new Error("Network/CORS error communicating with server.");
-                }
-                
-                let rawText;
-                try {
-                    rawText = await response.text();
-                } catch(readErr) {
-                    throw new Error(`Failed to read response (HTTP ${response.status}).`);
-                }
-
-                let result;
-                try {
-                    result = JSON.parse(rawText);
-                } catch(parseErr) {
-                    console.error("Parse Error. Raw text received:", rawText);
-                    const snippet = rawText.substring(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    throw new Error(`Server returned invalid format. Raw: "${snippet}..."`);
-                }
-
-                if (result.error) throw new Error(`API Error: ${result.error}`);
-                
+                const result = await apiCall({ action: 'dispatch', groupId: groupId });
+                dispatchBtn.style.backgroundColor = "var(--accent)";
+                dispatchBtnText.textContent = "Run Exchange & Dispatch";
                 dispatchSuccessMsg.style.display = 'block';
-                
             } catch (err) {
-                console.error("Dispatch Error:", err);
-                dispatchErrorMsg.innerHTML = `<strong>Error:</strong> ${err.message}`;
+                dispatchErrorMsg.textContent = "Failed to dispatch emails. " + err.message;
                 dispatchErrorMsg.style.display = 'block';
+                dispatchConfirmed = false;
+                dispatchBtn.style.backgroundColor = "var(--accent)";
+                dispatchBtnText.textContent = "Run Exchange & Dispatch";
+            } finally {
                 dispatchBtn.disabled = false;
                 dispatchBtn.classList.remove('loading');
             }
