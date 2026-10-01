@@ -39,12 +39,14 @@
         .section-header { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 2rem; }
 
         .creation-form { display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap; }
+        .form-row { display: flex; gap: 1.5rem; width: 100%; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 200px; position: relative; }
         .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
         .form-group input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border-subtle); color: var(--text-main); font-size: 1rem; padding: 0.5rem 0; transition: border-color 0.2s; outline: none; }
-        .form-group input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; cursor: pointer; transition: opacity 0.2s; }
-        .form-group input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+        .form-group input[type="date"]::-webkit-calendar-picker-indicator, .form-group input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; cursor: pointer; transition: opacity 0.2s; }
+        .form-group input[type="date"]::-webkit-calendar-picker-indicator:hover, .form-group input[type="time"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         .form-group input:focus { border-bottom-color: var(--border-focus); }
+        .form-group input::placeholder { color: rgba(255,255,255,0.3); }
 
         .btn-submit { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 0 1.5rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s, transform 0.1s; height: 40px; display: flex; align-items: center; justify-content: center; min-width: 100px; }
         .btn-submit:hover { opacity: 0.9; }
@@ -54,15 +56,16 @@
         .error-message { color: var(--text-error); font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; word-wrap: break-word; }
 
         .groups-list { display: flex; flex-direction: column; gap: 0.25rem; }
-        .group-item { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1rem; margin: 0 -1rem; border-radius: 8px; transition: background-color 0.2s; cursor: pointer; }
+        .group-item { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1rem; margin: 0 -1rem; border-radius: 8px; transition: background-color 0.2s; cursor: pointer; border: 1px solid transparent; }
         .group-item:hover { background-color: var(--hover-bg); }
-        .group-info h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.25rem; }
+        .group-item.dispatched { border-color: rgba(74, 222, 128, 0.2); }
+        .group-info h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .group-info h3 .status-badge { font-size: 0.7rem; background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 0.15rem 0.5rem; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
         .group-info p { font-size: 0.875rem; color: var(--text-muted); }
         .group-arrow { color: var(--text-muted); transition: transform 0.2s, color 0.2s; }
         .group-item:hover .group-arrow { transform: translateX(4px); color: var(--text-main); }
         
         .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 2rem 0; display: none; flex-direction: column; align-items: flex-start; gap: 1.5rem; }
-        .empty-error-state { color: var(--text-error); font-size: 0.95rem; padding: 2rem 0; display: none; flex-direction: column; align-items: flex-start; gap: 1.5rem; word-wrap: break-word;}
         
         .admin-link { font-size: 0.8rem; font-weight: 500; color: var(--accent); border: 1px solid var(--border-subtle); padding: 0.35rem 0.85rem; border-radius: 999px; transition: all 0.2s; }
         .admin-link:hover { border-color: var(--border-focus); background: rgba(255,255,255,0.05); }
@@ -96,18 +99,30 @@
             <section>
                 <h2 class="section-header">New Exchange</h2>
                 <form id="createGroupForm" class="creation-form">
-                    <div class="form-group">
-                        <label for="groupName">Exchange Name</label>
-                        <input type="text" id="groupName" placeholder="e.g. Office Secret Santa" required>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label for="groupName">Exchange Name</label>
+                            <input type="text" id="groupName" placeholder="e.g. Office Secret Santa" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="groupBudget">Budget (Optional)</label>
+                            <input type="text" id="groupBudget" placeholder="e.g. $25">
+                        </div>
                     </div>
-                    <div class="form-group" style="flex: 0.5;">
-                        <label for="exchangeDate">Exchange Date</label>
-                        <input type="date" id="exchangeDate" required>
+                    <div class="form-row" style="margin-top: 0.5rem;">
+                        <div class="form-group">
+                            <label for="exchangeDate">Exchange Date</label>
+                            <input type="date" id="exchangeDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="exchangeTime">Time (Optional)</label>
+                            <input type="time" id="exchangeTime">
+                        </div>
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <span class="btn-text">Create</span>
+                            <span class="btn-loader"></span>
+                        </button>
                     </div>
-                    <button type="submit" class="btn-submit" id="submitBtn">
-                        <span class="btn-text">Create</span>
-                        <span class="btn-loader"></span>
-                    </button>
                     <div class="error-message" id="errorMsg"></div>
                 </form>
             </section>
@@ -118,9 +133,6 @@
                 <div id="emptyState" class="empty-state">
                     <p id="emptyText">You haven't created any exchanges yet.</p>
                     <button type="button" class="btn-submit" onclick="document.getElementById('groupName').focus()">Create New Exchange</button>
-                </div>
-                <div id="errorState" class="empty-error-state">
-                    <p id="errorText"></p>
                 </div>
                 <div id="groupsList" class="groups-list"></div>
             </section>
@@ -134,49 +146,24 @@
                 const sheetId = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
                 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1&cb=${Date.now()}`;
                 const res = await fetch(url);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const text = await res.text();
-                const startIndex = text.indexOf('{');
-                const endIndex = text.lastIndexOf('}') + 1;
-                if (startIndex === -1 || endIndex === 0) throw new Error("Could not parse configuration.");
-                const json = JSON.parse(text.substring(startIndex, endIndex));
-                const cell = json.table?.rows?.[0]?.c?.[0];
-                const fetchedUrl = cell?.f ?? cell?.v ?? '';
-                if (!fetchedUrl) throw new Error("Configuration URL is empty.");
-                sessionStorage.setItem('giftex_script_url', fetchedUrl);
-                return fetchedUrl;
+                const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+                return json.table.rows[0]?.c[0]?.f ?? json.table.rows[0]?.c[0]?.v;
             } catch (err) {
-                throw new Error(`Config Error: ${err.message}`);
+                throw new Error("Unable to read config.");
             }
         }
 
         async function apiCall(payload) {
             const SCRIPT_URL = await getScriptUrl();
-            let response;
-            try {
-                response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (netErr) {
-                throw new Error("Network/CORS error communicating with server.");
-            }
-            let rawText;
-            try {
-                rawText = await response.text();
-            } catch(readErr) {
-                throw new Error(`Failed to read response body.`);
-            }
-            let result;
-            try { 
-                result = JSON.parse(rawText); 
-            } catch (parseErr) { 
-                throw new Error(`Server returned invalid JSON format.`); 
-            }
-            if (result.error) {
-                throw new Error(`API Error: ${result.error}`);
-            }
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            const text = await response.text();
+            const result = JSON.parse(text);
+            if (result.error) throw new Error(result.error);
             return result;
         }
 
@@ -249,13 +236,14 @@
                 const dateParts = group.date.split('T')[0].split('-');
                 const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
                 const formattedDate = localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                const isSent = group.numEmails > 0;
 
                 const a = document.createElement('a');
-                a.className = 'group-item';
+                a.className = `group-item ${isSent ? 'dispatched' : ''}`;
                 a.href = `group.html?id=${group.id}`;
                 a.innerHTML = `
                     <div class="group-info">
-                        <h3>${group.name}</h3>
+                        <h3>${group.name} ${isSent ? '<span class="status-badge">Emails Sent</span>' : ''}</h3>
                         <p>Exchange Date: ${formattedDate}</p>
                     </div>
                     <div class="group-arrow">
@@ -272,13 +260,15 @@
             e.preventDefault();
             const groupName = document.getElementById('groupName').value.trim();
             const exchangeDate = document.getElementById('exchangeDate').value;
+            const budget = document.getElementById('groupBudget').value.trim();
+            const exchangeTime = document.getElementById('exchangeTime').value;
             
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
             errorMsg.style.display = 'none';
 
             try {
-                const result = await apiCall({ action: 'createGroup', ownerId: userId, groupName, exchangeDate });
+                const result = await apiCall({ action: 'createGroup', ownerId: userId, groupName, exchangeDate, budget, exchangeTime });
                 window.location.href = `group.html?id=${result.group.id}`;
             } catch (err) {
                 errorMsg.textContent = "Failed to create exchange. " + err.message;
