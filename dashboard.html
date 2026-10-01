@@ -62,8 +62,11 @@
         .group-info h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
         .group-info h3 .status-badge { font-size: 0.7rem; background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 0.15rem 0.5rem; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
         .group-info p { font-size: 0.875rem; color: var(--text-muted); }
+        .group-actions { display: flex; align-items: center; gap: 1rem; }
         .group-arrow { color: var(--text-muted); transition: transform 0.2s, color 0.2s; }
         .group-item:hover .group-arrow { transform: translateX(4px); color: var(--text-main); }
+        .delete-group-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.5rem; transition: color 0.2s; display: flex; align-items: center; justify-content: center; }
+        .delete-group-btn:hover { color: var(--text-error); }
         
         .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 2rem 0; display: none; flex-direction: column; align-items: flex-start; gap: 1.5rem; }
         
@@ -106,12 +109,12 @@
                         </div>
                         <div class="form-group">
                             <label for="groupBudget">Budget (Optional)</label>
-                            <input type="text" id="groupBudget" placeholder="e.g. $25">
+                            <input type="text" id="groupBudget" placeholder="$____">
                         </div>
                     </div>
                     <div class="form-row" style="margin-top: 0.5rem;">
                         <div class="form-group">
-                            <label for="exchangeDate">Exchange Date</label>
+                            <label for="exchangeDate">Exchange Date <span style="float: right; text-transform: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><input type="checkbox" id="isTba" style="width: auto; margin: 0; cursor: pointer;"> TBA</span></label>
                             <input type="date" id="exchangeDate" required>
                         </div>
                         <div class="form-group">
@@ -189,13 +192,6 @@
             authWarning.style.display = 'block';
         } else {
             navActions.style.display = 'flex';
-            if (userRole === 'admin') {
-                const adminLink = document.createElement('a');
-                adminLink.href = 'admin.html';
-                adminLink.className = 'admin-link';
-                adminLink.textContent = 'Admin Dashboard';
-                navActions.insertBefore(adminLink, navActions.firstChild);
-            }
             userEmailDisplay.textContent = userEmail;
             dashboardContent.style.display = 'flex';
             
@@ -233,35 +229,80 @@
             groups.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             groups.forEach(group => {
-                const dateParts = group.date.split('T')[0].split('-');
-                const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-                const formattedDate = localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                let formattedDate = group.date;
+                if (group.date !== 'TBA') {
+                    const dateParts = group.date.split('T')[0].split('-');
+                    const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                    formattedDate = localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                }
+                
                 const isSent = group.numEmails > 0;
 
-                const a = document.createElement('a');
-                a.className = `group-item ${isSent ? 'dispatched' : ''}`;
-                a.href = `group.html?id=${group.id}`;
-                a.innerHTML = `
+                const div = document.createElement('div');
+                div.className = `group-item ${isSent ? 'dispatched' : ''}`;
+                div.onclick = (e) => {
+                    // Prevent navigation if they clicked the trash can
+                    if (!e.target.closest('.delete-group-btn')) {
+                        window.location.href = `group.html?id=${group.id}`;
+                    }
+                };
+                div.innerHTML = `
                     <div class="group-info">
                         <h3>${group.name} ${isSent ? '<span class="status-badge">Emails Sent</span>' : ''}</h3>
                         <p>Exchange Date: ${formattedDate}</p>
                     </div>
-                    <div class="group-arrow">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                    <div class="group-actions">
+                        <button type="button" class="delete-group-btn" title="Delete Exchange" onclick="deleteGroup('${group.id}', event)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                        <div class="group-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
                     </div>
                 `;
-                groupsList.appendChild(a);
+                groupsList.appendChild(div);
             });
         }
+
+        async function deleteGroup(groupId, event) {
+            event.stopPropagation();
+            if (!confirm("Are you sure you want to permanently delete this exchange and all its participants? This cannot be undone.")) return;
+            
+            try {
+                await apiCall({ action: 'deleteGroup', ownerId: userId, groupId: groupId });
+                fetchGroups(); // Refresh UI instantly
+            } catch (err) {
+                alert("Failed to delete exchange: " + err.message);
+            }
+        }
+
+        const isTbaCheckbox = document.getElementById('isTba');
+        const exchangeDateInput = document.getElementById('exchangeDate');
+        const exchangeTimeInput = document.getElementById('exchangeTime');
+        
+        isTbaCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                exchangeDateInput.disabled = true;
+                exchangeDateInput.removeAttribute('required');
+                exchangeTimeInput.disabled = true;
+            } else {
+                exchangeDateInput.disabled = false;
+                exchangeDateInput.setAttribute('required', 'true');
+                exchangeTimeInput.disabled = false;
+            }
+        });
 
         createForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const groupName = document.getElementById('groupName').value.trim();
-            const exchangeDate = document.getElementById('exchangeDate').value;
+            const exchangeDate = isTbaCheckbox.checked ? 'TBA' : exchangeDateInput.value;
             const budget = document.getElementById('groupBudget').value.trim();
-            const exchangeTime = document.getElementById('exchangeTime').value;
+            const exchangeTime = isTbaCheckbox.checked ? '' : exchangeTimeInput.value;
             
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
