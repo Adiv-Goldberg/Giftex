@@ -126,7 +126,11 @@
 
         <div id="dashboardContent" style="display: none; flex-direction: column; gap: 4rem;">
             
-            <section class="header-section">
+            <section class="header-section" style="position: relative;">
+                <button onclick="openEditGroupModal()" class="btn-text-action" style="position: absolute; right: 0; top: 0; display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 999px; padding: 0.5rem 1rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Edit Details
+                </button>
                 <h1 id="displayGroupName">Loading...</h1>
                 <p id="displayGroupDate">Exchange Date: ...</p>
                 <div class="group-meta">
@@ -241,6 +245,38 @@ Remember, it's a secret! Happy gifting! 🎁</textarea>
         </div>
     </div>
 
+    <!-- Edit Group Modal -->
+    <div class="modal-overlay" id="editGroupModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Edit Exchange Details</h3>
+                <p>Update the date, time, or budget for this exchange.</p>
+            </div>
+            <form id="editGroupForm" class="creation-form" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+                <div class="form-group">
+                    <label for="editDate">Exchange Date <span style="float: right; text-transform: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><input type="checkbox" id="editIsTba" style="width: auto; margin: 0; cursor: pointer;"> TBA</span></label>
+                    <input type="date" id="editDate">
+                </div>
+                <div class="form-group">
+                    <label for="editTime">Time (Optional)</label>
+                    <input type="time" id="editTime">
+                </div>
+                <div class="form-group">
+                    <label for="editBudget">Budget (Optional)</label>
+                    <input type="text" id="editBudget" placeholder="$____">
+                </div>
+                <div class="error-message" id="editGroupErrorMsg"></div>
+                <div class="modal-actions" style="margin-top: 1rem;">
+                    <button type="button" class="btn-cancel" onclick="closeModal('editGroupModal')">Cancel</button>
+                    <button type="submit" class="btn-submit" id="saveGroupBtn">
+                        <span class="btn-text">Save Changes</span>
+                        <span class="btn-loader"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         async function getScriptUrl() {
             sessionStorage.removeItem('giftex_script_url');
@@ -300,19 +336,26 @@ Remember, it's a secret! Happy gifting! 🎁</textarea>
                 
                 document.getElementById('displayGroupName').textContent = globalGroupData.name;
                 
-                const dateParts = globalGroupData.date.split('T')[0].split('-');
-                const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-                document.getElementById('displayGroupDate').textContent = 'Exchange Date: ' + localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                if (globalGroupData.date === 'TBA') {
+                    document.getElementById('displayGroupDate').textContent = 'Exchange Date: TBA';
+                } else {
+                    const dateParts = globalGroupData.date.split('T')[0].split('-');
+                    const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                    document.getElementById('displayGroupDate').textContent = 'Exchange Date: ' + localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                }
                 
                 if (globalGroupData.budget) {
                     const bEl = document.getElementById('displayBudget');
                     bEl.textContent = "Budget: " + globalGroupData.budget;
                     bEl.style.display = 'inline-block';
                 }
+
+                const tEl = document.getElementById('displayTime');
                 if (globalGroupData.time) {
-                    const tEl = document.getElementById('displayTime');
                     tEl.textContent = "Time: " + globalGroupData.time;
                     tEl.style.display = 'inline-block';
+                } else {
+                    tEl.style.display = 'none';
                 }
 
                 if (globalGroupData.numEmails > 0) {
@@ -506,6 +549,101 @@ Remember, it's a secret! Happy gifting! 🎁</textarea>
         window.onclick = function(event) {
             if (event.target.classList.contains('modal-overlay')) closeModal(event.target.id);
         }
+
+        function openEditGroupModal() {
+            const isTba = globalGroupData.date === 'TBA';
+            document.getElementById('editIsTba').checked = isTba;
+            
+            const dateInput = document.getElementById('editDate');
+            const timeInput = document.getElementById('editTime');
+            
+            if (isTba) {
+                dateInput.disabled = true;
+                dateInput.value = '';
+                timeInput.disabled = true;
+                timeInput.value = '';
+            } else {
+                dateInput.disabled = false;
+                dateInput.value = globalGroupData.date.split('T')[0];
+                timeInput.disabled = false;
+                timeInput.value = globalGroupData.time || '';
+            }
+            
+            document.getElementById('editBudget').value = globalGroupData.budget || '';
+            document.getElementById('editGroupErrorMsg').style.display = 'none';
+            document.getElementById('editGroupModal').classList.add('active');
+        }
+
+        document.getElementById('editIsTba').addEventListener('change', (e) => {
+            const dateInput = document.getElementById('editDate');
+            const timeInput = document.getElementById('editTime');
+            if (e.target.checked) {
+                dateInput.disabled = true;
+                timeInput.disabled = true;
+                dateInput.removeAttribute('required');
+            } else {
+                dateInput.disabled = false;
+                timeInput.disabled = false;
+                dateInput.setAttribute('required', 'true');
+            }
+        });
+
+        document.getElementById('editGroupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveGroupBtn');
+            const errEl = document.getElementById('editGroupErrorMsg');
+            btn.classList.add('loading'); btn.disabled = true; errEl.style.display = 'none';
+
+            try {
+                const isTba = document.getElementById('editIsTba').checked;
+                const exchangeDate = isTba ? 'TBA' : document.getElementById('editDate').value;
+                const exchangeTime = isTba ? '' : document.getElementById('editTime').value;
+                const budget = document.getElementById('editBudget').value.trim();
+
+                await apiCall({ 
+                    action: 'updateGroupDetails', 
+                    groupId: groupId, 
+                    ownerId: userId,
+                    exchangeDate: exchangeDate,
+                    exchangeTime: exchangeTime,
+                    budget: budget
+                });
+
+                globalGroupData.date = exchangeDate;
+                globalGroupData.time = exchangeTime;
+                globalGroupData.budget = budget;
+                
+                if (exchangeDate === 'TBA') {
+                    document.getElementById('displayGroupDate').textContent = 'Exchange Date: TBA';
+                } else {
+                    const dateParts = exchangeDate.split('T')[0].split('-');
+                    const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                    document.getElementById('displayGroupDate').textContent = 'Exchange Date: ' + localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                }
+
+                if (budget) {
+                    const bEl = document.getElementById('displayBudget');
+                    bEl.textContent = "Budget: " + budget;
+                    bEl.style.display = 'inline-block';
+                } else {
+                    document.getElementById('displayBudget').style.display = 'none';
+                }
+
+                if (exchangeTime) {
+                    const tEl = document.getElementById('displayTime');
+                    tEl.textContent = "Time: " + exchangeTime;
+                    tEl.style.display = 'inline-block';
+                } else {
+                    document.getElementById('displayTime').style.display = 'none';
+                }
+
+                closeModal('editGroupModal');
+            } catch (err) {
+                errEl.textContent = err.message; errEl.style.display = 'block';
+            } finally {
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
