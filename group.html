@@ -27,18 +27,14 @@
         .user-email { font-size: 0.875rem; color: var(--text-muted); }
         .logout-btn, .back-btn { font-size: 0.875rem; color: var(--text-muted); background: none; border: none; cursor: pointer; transition: color 0.2s; }
         .logout-btn:hover, .back-btn:hover { color: var(--text-main); }
-        .admin-link { font-size: 0.8rem; font-weight: 500; color: var(--bg-pure); background-color: var(--accent); padding: 0.35rem 0.85rem; border-radius: 999px; transition: opacity 0.2s; }
-        .admin-link:hover { opacity: 0.9; }
 
         main { flex: 1; padding: 4rem 2rem; max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 4rem; }
         
         .header-section { margin-bottom: -1rem; }
         .header-section h1 { font-size: 2.5rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
-        .header-section p { color: var(--text-muted); font-size: 1rem; }
-
-        .auth-warning { text-align: center; padding: 4rem 0; }
-        .auth-warning h2 { font-weight: 500; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
-        .auth-warning a { background-color: var(--accent); color: var(--bg-pure); padding: 0.75rem 1.5rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; display: inline-block; }
+        .header-section p { color: var(--text-muted); font-size: 1rem; margin-bottom: 0.25rem; }
+        .group-meta { display: inline-flex; gap: 1rem; font-size: 0.85rem; color: #aaa; margin-top: 0.5rem; }
+        .group-meta span { background: rgba(255,255,255,0.1); padding: 0.2rem 0.6rem; border-radius: 4px; }
 
         .section-header { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 2rem; color: var(--text-muted); }
 
@@ -47,7 +43,6 @@
         .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
         .form-group input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border-subtle); color: var(--text-main); font-size: 1rem; padding: 0.5rem 0; transition: border-color 0.2s; outline: none; }
         .form-group input:focus { border-bottom-color: var(--border-focus); }
-        .form-group input::placeholder { color: rgba(255,255,255,0.2); }
         
         .btn-submit { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 0 1.5rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s, transform 0.1s; height: 40px; display: flex; align-items: center; justify-content: center; min-width: 100px; }
         .btn-submit:hover { opacity: 0.9; }
@@ -55,44 +50,49 @@
         .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .participants-list { display: flex; flex-direction: column; gap: 0; margin-bottom: 2rem; }
-        .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; border-bottom: 1px solid var(--border-subtle); transition: background-color 0.2s; margin: 0 -1rem; padding-left: 1rem; padding-right: 1rem; border-radius: 8px; border-bottom: none; }
-        .participant-item:hover { background-color: var(--hover-bg); }
+        .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; border-bottom: 1px solid var(--border-subtle); margin: 0 -1rem; padding-left: 1rem; padding-right: 1rem; border-radius: 8px; border-bottom: none; }
         .part-info h3 { font-size: 1.125rem; font-weight: 400; margin-bottom: 0.25rem; }
         .part-info p { font-size: 0.875rem; color: var(--text-muted); }
-        .part-actions { display: flex; gap: 1rem; align-items: center; }
         
         .btn-text-action { background: none; border: none; color: var(--text-muted); font-size: 0.875rem; cursor: pointer; transition: color 0.2s; padding: 0.5rem; }
         .btn-text-action:hover { color: var(--text-main); }
         .has-restrictions { color: var(--accent); font-weight: 500; }
 
-        .empty-state { color: var(--text-muted); font-size: 0.95rem; padding: 1rem 0; display: none; }
-
-        .dispatch-zone { text-align: left; margin-top: 2rem; padding-top: 3rem; }
-        .btn-dispatch { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 1rem 2rem; border-radius: 9999px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s, opacity 0.2s, transform 0.1s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .dispatch-zone { text-align: left; margin-top: 2rem; padding-top: 3rem; border-top: 1px solid var(--border-subtle); }
+        .dispatch-zone h2 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 500; }
+        .btn-dispatch { background-color: var(--accent); color: var(--bg-pure); border: none; padding: 1rem 2rem; border-radius: 9999px; font-size: 1rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.1s; }
         .btn-dispatch:hover { opacity: 0.9; }
         .btn-dispatch:active { transform: scale(0.98); }
-        .btn-dispatch:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .dispatch-zone p { color: var(--text-muted); font-size: 0.875rem; margin-top: 1rem; line-height: 1.5; max-width: 500px; }
+        
+        .status-box { background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: none; }
+        .status-box p { color: #4ade80; font-weight: 500; margin-bottom: 0.5rem; }
+        .status-box span { font-size: 0.85rem; color: var(--text-muted); }
 
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.2s; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-content { background: #111; border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 450px; transform: translateY(20px); transition: transform 0.2s; }
+        .modal-content { background: #111; border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 600px; transform: translateY(20px); transition: transform 0.2s; max-height: 90vh; overflow-y: auto; }
         .modal-overlay.active .modal-content { transform: translateY(0); }
         
-        .modal-header { margin-bottom: 2rem; }
-        .modal-header h3 { font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-        .modal-header p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
+        .modal-header h3 { font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .modal-header p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem; }
         
-        .restriction-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 300px; overflow-y: auto; margin-bottom: 2rem; padding-right: 1rem; }
-        .restriction-item { display: flex; align-items: center; gap: 1rem; font-size: 1rem; cursor: pointer; padding: 0.75rem; border-radius: 8px; transition: background-color 0.2s; }
-        .restriction-item:hover { background-color: var(--hover-bg); }
-        .restriction-item input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
+        .email-template-box { width: 100%; background: #000; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-main); font-size: 0.95rem; padding: 1rem; min-height: 200px; resize: vertical; margin-bottom: 1rem; outline: none; }
+        .email-template-box:focus { border-color: var(--border-focus); }
         
-        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; }
+        .tag-list { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .tag-badge { font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 0.25rem 0.5rem; border-radius: 4px; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+        .tag-badge:hover { color: var(--accent); background: rgba(255,255,255,0.2); }
+
+        .restriction-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.5rem; background: #000; }
+        .restriction-item { display: flex; align-items: center; gap: 1rem; font-size: 0.95rem; cursor: pointer; padding: 0.5rem; border-radius: 4px; }
+        .restriction-item:hover { background: rgba(255,255,255,0.05); }
+        .restriction-item input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+        
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
         .btn-cancel { background: transparent; color: var(--text-muted); border: none; font-size: 0.875rem; cursor: pointer; transition: color 0.2s; font-weight: 500; }
         .btn-cancel:hover { color: var(--text-main); }
         
-        .error-message, .success-message { font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; text-align: left; word-wrap: break-word; }
+        .error-message, .success-message { font-size: 0.875rem; margin-top: 1rem; display: none; width: 100%; text-align: left; }
         .error-message { color: var(--text-error); }
         .success-message { color: #4ade80; }
 
@@ -105,7 +105,6 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
 <body>
@@ -122,11 +121,6 @@
     </nav>
 
     <main>
-        <div id="authWarning" class="auth-warning" style="display: none;">
-            <h2>You are not logged in.</h2>
-            <a href="auth.html">Sign In</a>
-        </div>
-
         <div id="pageLoader" class="page-loader"></div>
         <div id="errorState" class="error-message" style="text-align: left; font-size: 1rem;"></div>
 
@@ -135,17 +129,21 @@
             <section class="header-section">
                 <h1 id="displayGroupName">Loading...</h1>
                 <p id="displayGroupDate">Exchange Date: ...</p>
+                <div class="group-meta">
+                    <span id="displayBudget" style="display:none;">Budget: --</span>
+                    <span id="displayTime" style="display:none;">Time: --</span>
+                </div>
             </section>
 
             <section>
                 <h2 class="section-header">Add Participant</h2>
                 <form id="addPartForm" class="creation-form">
                     <div class="form-group">
-                        <label for="partName">Name</label>
+                        <label>Name</label>
                         <input type="text" id="partName" placeholder="e.g. John Doe" required>
                     </div>
                     <div class="form-group">
-                        <label for="partEmail">Email Address</label>
+                        <label>Email Address</label>
                         <input type="email" id="partEmail" placeholder="john@example.com" required>
                     </div>
                     <button type="submit" class="btn-submit" id="addBtn">
@@ -158,34 +156,85 @@
 
             <section>
                 <h2 class="section-header">Participants (<span id="partCount">0</span>)</h2>
-                <div id="emptyState" class="empty-state">No participants added yet.</div>
+                <div id="emptyState" style="color:var(--text-muted); font-size:0.95rem;">No participants added yet.</div>
                 <div id="participantsList" class="participants-list"></div>
             </section>
             
             <section class="dispatch-zone">
-                <button type="button" class="btn-dispatch" id="dispatchBtn">
-                    <span class="btn-text" id="dispatchBtnText">Run Exchange & Dispatch</span>
-                    <span class="btn-loader" style="width: 18px; height: 18px; border-width: 2px;"></span>
+                <h2>Dispatch Center</h2>
+                
+                <div id="statusBox" class="status-box">
+                    <p>✓ Emails have been securely dispatched!</p>
+                    <span>Matches are permanently locked in to ensure fairness. Need to resend? Click below to select specific users.</span>
+                </div>
+
+                <button type="button" class="btn-dispatch" id="openDispatchBtn">
+                    Configure & Send Emails
                 </button>
-                <p>Matches are processed instantly and deleted immediately from memory. Emails will be dispatched securely from the cloud.</p>
-                <div class="error-message" id="dispatchErrorMsg"></div>
-                <div class="success-message" id="dispatchSuccessMsg">Success! All emails have been securely dispatched.</div>
+                <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 1rem;">
+                    Don't worry, emails often hit spam filters. Tell your friends to check their junk mail just in case!
+                </p>
             </section>
             
         </div>
     </main>
 
+    <!-- Restrictions Modal -->
     <div class="modal-overlay" id="restrictionsModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 450px;">
             <div class="modal-header">
                 <h3>Set Restrictions</h3>
                 <p>Select the people that <span id="modalTargetName" style="color:var(--text-main); font-weight:500;"></span> cannot be matched with.</p>
             </div>
-            <div class="restriction-list" id="modalRestrictionsList"></div>
+            <div class="restriction-list" id="modalRestrictionsList" style="border:none; padding:0; background:transparent;"></div>
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-cancel" onclick="closeModal('restrictionsModal')">Cancel</button>
                 <button class="btn-submit" id="saveRestrictionsBtn">
                     <span class="btn-text">Save Rules</span>
+                    <span class="btn-loader"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dispatch Configuration Modal -->
+    <div class="modal-overlay" id="dispatchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Configure Exchange Email</h3>
+                <p>Customize the message everyone will receive. Variables will automatically update per user.</p>
+            </div>
+            
+            <div class="tag-list">
+                <span class="tag-badge" onclick="insertTag('[giver]')">Click to insert: [giver]</span>
+                <span class="tag-badge" onclick="insertTag('[receiver]')">Click to insert: [receiver]</span>
+                <span class="tag-badge" onclick="insertTag('[budget]')">Click to insert: [budget]</span>
+                <span class="tag-badge" onclick="insertTag('[date]')">Click to insert: [date]</span>
+            </div>
+
+            <textarea id="emailTemplateInput" class="email-template-box">Hi [giver],
+
+You have been invited to a Secret Santa exchange!
+
+You are the Secret Santa for: [receiver]
+
+Budget: [budget]
+Date: [date]
+
+Remember, it's a secret! Happy gifting! 🎁</textarea>
+
+            <div id="resendSection" style="display: none; margin-top: 1.5rem;">
+                <h4 style="margin-bottom: 0.5rem; font-weight: 500;">Resend Emails?</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Since the draw is locked, select who you want to resend their exact match to.</p>
+                <div class="restriction-list" id="resendCheckboxes"></div>
+            </div>
+
+            <div class="error-message" id="dispatchErrorMsg"></div>
+            
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('dispatchModal')">Cancel</button>
+                <button class="btn-submit" id="confirmDispatchBtn">
+                    <span class="btn-text">Send Emails Now</span>
                     <span class="btn-loader"></span>
                 </button>
             </div>
@@ -199,104 +248,42 @@
                 const sheetId = '1cM6OQBR7X48aI_8oOaQVJ_3kwCuUOjpsZaAPJC1E3Y4';
                 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=api&range=A1&cb=${Date.now()}`;
                 const res = await fetch(url);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const text = await res.text();
-                const startIndex = text.indexOf('{');
-                const endIndex = text.lastIndexOf('}') + 1;
-                if (startIndex === -1 || endIndex === 0) throw new Error("Could not parse configuration.");
-                const json = JSON.parse(text.substring(startIndex, endIndex));
-                const cell = json.table?.rows?.[0]?.c?.[0];
-                const fetchedUrl = cell?.f ?? cell?.v ?? '';
-                if (!fetchedUrl) throw new Error("Configuration URL is empty.");
-                sessionStorage.setItem('giftex_script_url', fetchedUrl);
-                return fetchedUrl;
+                const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+                return json.table.rows[0]?.c[0]?.f ?? json.table.rows[0]?.c[0]?.v;
             } catch (err) {
-                throw new Error(`Config Error: ${err.message}`);
+                throw new Error("Unable to read config.");
             }
         }
 
         async function apiCall(payload) {
             const SCRIPT_URL = await getScriptUrl();
-            let response;
-            try {
-                response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (netErr) {
-                throw new Error("Network/CORS error communicating with server.");
-            }
-            let rawText;
-            try {
-                rawText = await response.text();
-            } catch(readErr) {
-                throw new Error(`Failed to read response body.`);
-            }
-            let result;
-            try { 
-                result = JSON.parse(rawText); 
-            } catch (parseErr) { 
-                throw new Error(`Server returned invalid JSON format.`); 
-            }
-            if (result.error) {
-                throw new Error(`API Error: ${result.error}`);
-            }
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            const text = await response.text();
+            const result = JSON.parse(text);
+            if (result.error) throw new Error(result.error);
             return result;
         }
 
         const userId = localStorage.getItem('giftex_userId');
-        const userRole = localStorage.getItem('giftex_role');
-        const userEmail = localStorage.getItem('giftex_email');
         const urlParams = new URLSearchParams(window.location.search);
         const groupId = urlParams.get('id');
         
+        let globalGroupData = null;
         let currentParticipants = [];
         let editingParticipantId = null;
 
-        const authWarning = document.getElementById('authWarning');
-        const dashboardContent = document.getElementById('dashboardContent');
-        const navActions = document.getElementById('navActions');
-        const userEmailDisplay = document.getElementById('userEmailDisplay');
-        const pageLoader = document.getElementById('pageLoader');
-        const errorState = document.getElementById('errorState');
-        
-        const displayGroupName = document.getElementById('displayGroupName');
-        const displayGroupDate = document.getElementById('displayGroupDate');
-        const addPartForm = document.getElementById('addPartForm');
-        const addBtn = document.getElementById('addBtn');
-        const addErrorMsg = document.getElementById('addErrorMsg');
-        
-        const participantsList = document.getElementById('participantsList');
-        const emptyState = document.getElementById('emptyState');
-        const partCount = document.getElementById('partCount');
-        
-        const modal = document.getElementById('restrictionsModal');
-        const modalRestrictionsList = document.getElementById('modalRestrictionsList');
-        const saveRestrictionsBtn = document.getElementById('saveRestrictionsBtn');
-        
-        const dispatchBtn = document.getElementById('dispatchBtn');
-        const dispatchBtnText = document.getElementById('dispatchBtnText');
-        const dispatchErrorMsg = document.getElementById('dispatchErrorMsg');
-        const dispatchSuccessMsg = document.getElementById('dispatchSuccessMsg');
-
-        if (!userId) {
-            authWarning.style.display = 'block';
-            pageLoader.style.display = 'none';
-        } else if (!groupId) {
-            errorState.textContent = "Error: No group ID provided in URL.";
-            errorState.style.display = 'block';
-            pageLoader.style.display = 'none';
+        if (!userId || !groupId) {
+            document.getElementById('errorState').textContent = "Access denied or Group missing.";
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('pageLoader').style.display = 'none';
         } else {
-            navActions.style.display = 'flex';
-            if (userEmail) userEmailDisplay.textContent = userEmail;
-            if (userRole === 'admin') {
-                const adminLink = document.createElement('a');
-                adminLink.href = 'admin.html';
-                adminLink.className = 'admin-link';
-                adminLink.textContent = 'Admin';
-                navActions.insertBefore(adminLink, navActions.firstChild);
-            }
+            document.getElementById('navActions').style.display = 'flex';
+            document.getElementById('userEmailDisplay').textContent = localStorage.getItem('giftex_email');
             fetchGroupDetails();
         }
 
@@ -309,31 +296,51 @@
         async function fetchGroupDetails() {
             try {
                 const result = await apiCall({ action: 'getGroupDetails', userId: userId, groupId: groupId });
-                displayGroupName.textContent = result.group.name;
-                const dateParts = result.group.date.split('T')[0].split('-');
+                globalGroupData = result.group;
+                
+                document.getElementById('displayGroupName').textContent = globalGroupData.name;
+                
+                const dateParts = globalGroupData.date.split('T')[0].split('-');
                 const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-                displayGroupDate.textContent = 'Exchange Date: ' + localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                document.getElementById('displayGroupDate').textContent = 'Exchange Date: ' + localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                
+                if (globalGroupData.budget) {
+                    const bEl = document.getElementById('displayBudget');
+                    bEl.textContent = "Budget: " + globalGroupData.budget;
+                    bEl.style.display = 'inline-block';
+                }
+                if (globalGroupData.time) {
+                    const tEl = document.getElementById('displayTime');
+                    tEl.textContent = "Time: " + globalGroupData.time;
+                    tEl.style.display = 'inline-block';
+                }
+
+                if (globalGroupData.numEmails > 0) {
+                    document.getElementById('statusBox').style.display = 'block';
+                    document.getElementById('openDispatchBtn').textContent = "Resend Emails";
+                }
                 
                 currentParticipants = result.participants || [];
                 renderParticipants();
-                dashboardContent.style.display = 'flex';
+                document.getElementById('dashboardContent').style.display = 'flex';
             } catch (err) {
-                errorState.textContent = "Unable to load group details. " + err.message;
-                errorState.style.display = 'block';
+                document.getElementById('errorState').textContent = err.message;
+                document.getElementById('errorState').style.display = 'block';
             } finally {
-                pageLoader.style.display = 'none';
+                document.getElementById('pageLoader').style.display = 'none';
             }
         }
 
         function renderParticipants() {
-            participantsList.innerHTML = '';
-            partCount.textContent = currentParticipants.length;
+            const list = document.getElementById('participantsList');
+            list.innerHTML = '';
+            document.getElementById('partCount').textContent = currentParticipants.length;
             
             if (currentParticipants.length === 0) {
-                emptyState.style.display = 'block';
+                document.getElementById('emptyState').style.display = 'block';
                 return;
             }
-            emptyState.style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
 
             currentParticipants.forEach(part => {
                 const hasRestrictions = part.restrictions && part.restrictions.length > 0;
@@ -346,141 +353,159 @@
                     </div>
                     <div class="part-actions">
                         <button type="button" class="btn-text-action ${hasRestrictions ? 'has-restrictions' : ''}" 
-                                onclick="openModal('${part.id}')">
-                            ${hasRestrictions ? 'Restrictions (' + part.restrictions.length + ')' : 'Add Restrictions'}
+                                onclick="openRestrictionsModal('${part.id}')">
+                            ${hasRestrictions ? 'Rules (' + part.restrictions.length + ')' : 'Add Rule'}
                         </button>
                     </div>
                 `;
-                participantsList.appendChild(div);
+                list.appendChild(div);
             });
         }
 
-        addPartForm.addEventListener('submit', async (e) => {
+        document.getElementById('addPartForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('partName').value.trim();
-            const email = document.getElementById('partEmail').value.trim();
-            
-            addBtn.classList.add('loading');
-            addBtn.disabled = true;
-            addErrorMsg.style.display = 'none';
+            const btn = document.getElementById('addBtn');
+            const errEl = document.getElementById('addErrorMsg');
+            btn.classList.add('loading'); btn.disabled = true; errEl.style.display = 'none';
 
             try {
-                const result = await apiCall({ action: 'addParticipant', groupId: groupId, name: name, email: email });
+                const name = document.getElementById('partName').value.trim();
+                const email = document.getElementById('partEmail').value.trim();
+                const result = await apiCall({ action: 'addParticipant', groupId, name, email });
+                
                 currentParticipants.push(result.participant);
                 renderParticipants();
-                addPartForm.reset();
+                document.getElementById('addPartForm').reset();
                 document.getElementById('partName').focus();
             } catch (err) {
-                addErrorMsg.textContent = "Failed to add participant. " + err.message;
-                addErrorMsg.style.display = 'block';
+                errEl.textContent = err.message; errEl.style.display = 'block';
             } finally {
-                addBtn.classList.remove('loading');
-                addBtn.disabled = false;
+                btn.classList.remove('loading'); btn.disabled = false;
             }
         });
 
-        function openModal(participantId) {
+        function openRestrictionsModal(participantId) {
             editingParticipantId = participantId;
             const targetPart = currentParticipants.find(p => p.id === participantId);
             document.getElementById('modalTargetName').textContent = targetPart.name;
-            modalRestrictionsList.innerHTML = '';
+            const list = document.getElementById('modalRestrictionsList');
+            list.innerHTML = '';
             
             if (currentParticipants.length <= 1) {
-                modalRestrictionsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.95rem;">Add more participants first.</div>';
+                list.innerHTML = '<div style="color:var(--text-muted);">Add more participants first.</div>';
             } else {
                 currentParticipants.forEach(p => {
                     if (p.id === participantId) return; 
                     const isRestricted = targetPart.restrictions && targetPart.restrictions.includes(p.id);
                     const label = document.createElement('label');
                     label.className = 'restriction-item';
+                    label.style.borderBottom = "1px solid var(--border-subtle)";
+                    label.style.borderRadius = "0";
                     label.innerHTML = `
                         <input type="checkbox" value="${p.id}" ${isRestricted ? 'checked' : ''}>
-                        <span>${p.name} <span style="color:var(--text-muted); font-size:0.875rem; margin-left:0.5rem;">(${p.email})</span></span>
+                        <span>${p.name} <span style="color:var(--text-muted); font-size:0.875rem;">(${p.email})</span></span>
                     `;
-                    modalRestrictionsList.appendChild(label);
+                    list.appendChild(label);
                 });
             }
-            modal.classList.add('active');
+            document.getElementById('restrictionsModal').classList.add('active');
         }
 
-        function closeModal() {
-            modal.classList.remove('active');
-            setTimeout(() => { editingParticipantId = null; }, 200);
-        }
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
-
-        saveRestrictionsBtn.addEventListener('click', async () => {
-            const checkboxes = modalRestrictionsList.querySelectorAll('input[type="checkbox"]:checked');
-            const newRestrictions = Array.from(checkboxes).map(cb => cb.value);
-            
-            saveRestrictionsBtn.classList.add('loading');
-            saveRestrictionsBtn.disabled = true;
+        document.getElementById('saveRestrictionsBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveRestrictionsBtn');
+            btn.classList.add('loading'); btn.disabled = true;
             
             try {
-                const result = await apiCall({ 
-                    action: 'updateRestrictions', 
-                    groupId: groupId, 
-                    participantId: editingParticipantId,
-                    restrictions: newRestrictions
-                });
+                const checkboxes = document.getElementById('modalRestrictionsList').querySelectorAll('input[type="checkbox"]:checked');
+                const newRestrictions = Array.from(checkboxes).map(cb => cb.value);
+                
+                await apiCall({ action: 'updateRestrictions', groupId, participantId: editingParticipantId, restrictions: newRestrictions });
                 
                 const pIndex = currentParticipants.findIndex(p => p.id === editingParticipantId);
                 currentParticipants[pIndex].restrictions = newRestrictions;
                 renderParticipants();
-                closeModal();
+                closeModal('restrictionsModal');
             } catch (err) {
-                alert("Failed to save rules: " + err.message);
+                alert("Error: " + err.message);
             } finally {
-                saveRestrictionsBtn.classList.remove('loading');
-                saveRestrictionsBtn.disabled = false;
+                btn.classList.remove('loading'); btn.disabled = false;
             }
         });
 
-        let dispatchConfirmed = false;
-        
-        dispatchBtn.addEventListener('click', async () => {
+        function insertTag(tag) {
+            const textarea = document.getElementById('emailTemplateInput');
+            const startPos = textarea.selectionStart;
+            const endPos = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, startPos) + tag + textarea.value.substring(endPos, textarea.value.length);
+            textarea.focus();
+            textarea.selectionEnd = startPos + tag.length;
+        }
+
+        document.getElementById('openDispatchBtn').addEventListener('click', () => {
             if (currentParticipants.length < 3) {
-                dispatchErrorMsg.textContent = "You need at least 3 participants to run a Secret Santa exchange.";
-                dispatchErrorMsg.style.display = 'block';
+                alert("You need at least 3 participants to run an exchange.");
                 return;
             }
             
-            if (!dispatchConfirmed) {
-                dispatchConfirmed = true;
-                dispatchBtn.style.backgroundColor = "var(--text-error)";
-                dispatchBtnText.textContent = "Are you sure? Click again to execute.";
-                setTimeout(() => {
-                    dispatchConfirmed = false;
-                    dispatchBtn.style.backgroundColor = "var(--accent)";
-                    dispatchBtnText.textContent = "Run Exchange & Dispatch";
-                }, 5000);
-                return;
+            const resendSec = document.getElementById('resendSection');
+            const resendList = document.getElementById('resendCheckboxes');
+            resendList.innerHTML = '';
+            
+            if (globalGroupData.numEmails > 0) {
+                resendSec.style.display = 'block';
+                currentParticipants.forEach(p => {
+                    const label = document.createElement('label');
+                    label.className = 'restriction-item';
+                    label.innerHTML = `
+                        <input type="checkbox" value="${p.id}">
+                        <span>${p.name} <span style="color:var(--text-muted);">(${p.email})</span></span>
+                    `;
+                    resendList.appendChild(label);
+                });
+            } else {
+                resendSec.style.display = 'none';
             }
             
-            dispatchBtn.classList.add('loading');
-            dispatchBtn.disabled = true;
-            dispatchErrorMsg.style.display = 'none';
-            dispatchSuccessMsg.style.display = 'none';
-            
+            document.getElementById('dispatchModal').classList.add('active');
+        });
+
+        document.getElementById('confirmDispatchBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('confirmDispatchBtn');
+            const errEl = document.getElementById('dispatchErrorMsg');
+            btn.classList.add('loading'); btn.disabled = true; errEl.style.display = 'none';
+
             try {
-                const result = await apiCall({ action: 'dispatch', groupId: groupId });
-                dispatchBtn.style.backgroundColor = "var(--accent)";
-                dispatchBtnText.textContent = "Run Exchange & Dispatch";
-                dispatchSuccessMsg.style.display = 'block';
+                const template = document.getElementById('emailTemplateInput').value;
+                let resendList = [];
+                
+                if (globalGroupData.numEmails > 0) {
+                    const checkboxes = document.getElementById('resendCheckboxes').querySelectorAll('input[type="checkbox"]:checked');
+                    resendList = Array.from(checkboxes).map(cb => cb.value);
+                    if (resendList.length === 0) throw new Error("Please select at least one person to resend to.");
+                }
+
+                await apiCall({ action: 'dispatch', groupId, template, resendList });
+                
+                globalGroupData.numEmails++;
+                closeModal('dispatchModal');
+                document.getElementById('statusBox').style.display = 'block';
+                document.getElementById('openDispatchBtn').textContent = "Resend Emails";
+                
+                alert("Success! Emails have been securely dispatched.");
             } catch (err) {
-                dispatchErrorMsg.textContent = "Failed to dispatch emails. " + err.message;
-                dispatchErrorMsg.style.display = 'block';
-                dispatchConfirmed = false;
-                dispatchBtn.style.backgroundColor = "var(--accent)";
-                dispatchBtnText.textContent = "Run Exchange & Dispatch";
+                errEl.textContent = err.message; errEl.style.display = 'block';
             } finally {
-                dispatchBtn.disabled = false;
-                dispatchBtn.classList.remove('loading');
+                btn.classList.remove('loading'); btn.disabled = false;
             }
         });
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) closeModal(event.target.id);
+        }
     </script>
 </body>
 </html>
